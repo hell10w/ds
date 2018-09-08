@@ -1,0 +1,43 @@
+- repo: git://github.com/pre-commit/pre-commit-hooks
+  sha: master
+  hooks:
+  - id: autopep8-wrapper
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-docstring-first
+  - id: check-json
+  - id: check-merge-conflict
+  - id: check-xml
+  - id: check-yaml
+  - id: debug-statements
+  - id: detect-private-key
+  - id: double-quote-string-fixer
+  - id: end-of-file-fixer
+  - id: requirements-txt-fixer
+
+- repo: https://github.com/pre-commit/mirrors-yapf
+  sha: master
+  hooks:
+  - id: yapf
+    files: ds/
+
+# - repo: git://github.com/FalconSocial/pre-commit-python-sorter
+#   sha: master
+#   hooks:
+#   - id: python-import-sorter
+#     args: ['--silent-overwrite']
+
+- repo: git://github.com/asottile/reorder_python_imports
+  sha: master
+  hooks:
+  - id: reorder-python-imports
+
+- repo: git://github.com/pre-commit/pre-commit-hooks
+  sha: master
+  hooks:
+  - id: flake8
+
+- repo: https://github.com/pre-commit/mirrors-pylint
+  sha: v1.9.1
+  hooks:
+  - id: pylint
