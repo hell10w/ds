@@ -1,7 +1,14 @@
 from ds import text
 
-
 AUTOFILL = object()
+
+
+class DotDict(dict):
+    def __getattribute__(self, name):
+        try:
+            return super(DotDict, self).__getattribute__(name)
+        except AttributeError:
+            return self[name]
 
 
 def collect_meta_options(meta, defaults, **additional):
@@ -34,6 +41,6 @@ class CollectMeta(type):
     def __new__(mcs, name, bases, dct):
         Meta = dct.pop('Meta', None)
         klass = super(CollectMeta, mcs).__new__(mcs, name, bases, dct)
-        klass._meta = collect_meta_options(
-            Meta, mcs.meta_defaults, name=text.kebab_to_snake(name))
+        meta_options = collect_meta_options(Meta, mcs.meta_defaults, name=text.kebab_to_snake(name))
+        klass.meta = DotDict(meta_options)
         return klass
