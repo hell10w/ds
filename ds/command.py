@@ -1,35 +1,23 @@
 from weakref import ref
-from collections import OrderedDict
 
 from six import with_metaclass
 from docopt import docopt
 
-from ds import meta
+from ds import text
 
 
-class CommandMeta(meta.CollectMeta):
-    meta_defaults = dict(
-        abstract=False,
-        hidden=False,
-        name=meta.AUTOFILL,
-        usage='usage: {name}',
-        short_help='',
-        options_first=True,
-        consume_all_args=False,
-    )
-
-    commands = OrderedDict()
-
+class CommandMeta(type):
     def __new__(mcs, name, bases, dct):
+        command_name = dct.pop('name', None)
         klass = super(CommandMeta, mcs).__new__(mcs, name, bases, dct)
-        if not klass.meta.abstract:
-            mcs.commands[klass.meta.name] = klass
+        klass._name = command_name or text.kebab_to_snake(name)
         return klass
 
 
-class Command(with_metaclass(CommandMeta)):
-    class Meta:
-        abstract = True
+class BaseCommand(with_metaclass(CommandMeta)):
+    usage = 'usage: {name}'
+    short_help = ''
+    hidden = False
 
     def __init__(self, context):
         self._context = ref(context)
@@ -38,28 +26,38 @@ class Command(with_metaclass(CommandMeta)):
     def context(self):
         return self._context()
 
-    @property
-    def flow(self):
-        return self.context.flow
+
+class Command(BaseCommand):
+    options_first = True
+    consume_all_args = False
 
     def parse_command_line(self, command_line):
-        command_line = command_line or ''
-        if self.meta.consume_all_args:
+        command_line = command_line or ()
+        if self.consume_all_args:
             return command_line
-        usage = self.meta.usage.format(name=self.meta.name)
+        usage = self.usage.format(name=self._name)
         return docopt(usage, argv=command_line,
-                      options_first=self.meta.options_first)
-
-    def invoke_with_command_line(self, command_line=None):
-        return self.invoke(self.parse_argv(command_line))
+                      options_first=self.options_first)
 
     def invoke_with_args(self, args):
-        from pprint import pprint
-        pprint(args)
         raise NotImplementedError
 
+    def invoke(self, command_line=None, args=None):
+        if args:
+            assert not command_line
+            return self.invoke_with_args(args)
+        return self.invoke_with_args(self.parse_command_line(command_line))
 
-class __complete(Command):
-    class Meta:
-        hidden = True
-        short_help = 'Autocomplete helper'
+    def __call__(self, *args, **kwargs):
+        return self.invoke(*args, **kwargs)
+
+
+class _complete(Command):
+    hidden = True
+
+
+class _show_context(Command):
+    hidden = True
+
+    def invoke_with_args(self, args):
+        text.pretty_print_object(self.context)

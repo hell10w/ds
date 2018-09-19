@@ -2,12 +2,16 @@ import imp
 import importlib
 from logging import getLogger
 import os
-from os.path import sep, join, exists, abspath, realpath, dirname, expanduser
+from os.path import sep, join, exists, abspath, realpath, dirname, expanduser, basename
 
 from ds.decorators import cached_func
 
 
 HIDDEN_PREFIX = '.ds'
+
+
+def relative(*parts):
+    return join(dirname(__file__), *parts)
 
 
 def is_fs_path(path):
@@ -43,14 +47,17 @@ def walk_top(path=None):
 @cached_func
 def find_project_root():
     for path in walk_top():
-        if exists(join(path, HIDDEN_PREFIX)):
-            return path
+        if not exists(join(path, HIDDEN_PREFIX)):
+            continue
+        if path == expanduser('~'):
+            continue
+        return path
     return get_pwd()
 
 
 @cached_func
 def get_project_name():
-    return dirname(find_project_root())
+    return basename(find_project_root())
 
 
 @cached_func
@@ -60,4 +67,5 @@ def build_additional_import():
         for item in walk_top()
     ]
     result.append(users_home())
+    result.append(relative('presets'))
     return filter(exists, result)

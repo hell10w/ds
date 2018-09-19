@@ -101,3 +101,4 @@ ENV/
 .mypy_cache/
 .session.vim
 .pytest_cache/
+roadmap

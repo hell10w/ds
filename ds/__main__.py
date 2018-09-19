@@ -1,18 +1,22 @@
+import sys
 from logging import getLogger
 
-from ds.import_tools import try_to_import
+from ds import fs
 
 
 logger = getLogger(__name__)
 
 
 def main():
-    module = try_to_import('ds.flow')
-    Flow = getattr(module, 'Flow')
-    while True:
-        Flow = Flow().run()
-        if Flow is None:
-            break
+    sys.path = fs.build_additional_import() + sys.path
+
+    try:
+        from context_loader import load_context
+    except ImportError:
+        from ds.load_context import load_context
+
+    Context = load_context()
+    Context().run()
 
 
 if __name__ == '__main__':

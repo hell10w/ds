@@ -1,4 +1,6 @@
 import re
+from pprint import pformat
+from collections import OrderedDict
 
 
 def format_columns(*items, **opts):
@@ -25,3 +27,38 @@ def format_columns(*items, **opts):
 def kebab_to_snake(name):
     value = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1-\2', value).lower()
+
+
+def flatten(args):
+    result = []
+    for item in args:
+        if isinstance(item, (set, tuple, list)):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
+
+
+def pretty_print_object(instance):
+    for key in dir(instance):
+        if key.startswith('_'):
+            continue
+        value = getattr(instance, key)
+        if callable(value):
+            return
+        if isinstance(value, OrderedDict):
+            value = dict(value)
+        formatted_value = pformat(value, indent=1)
+        sep = {
+            False: ' ',
+            True: '\n',
+        }['\n' in formatted_value]
+        print((':' + sep).join([key, formatted_value]))
+
+
+def safe_dict_path(d, *path, **opts):
+    default = opts.pop('default', None)
+    value = d
+    for key in path:
+        value = (value or {}).get(key, None)
+    return value or default
