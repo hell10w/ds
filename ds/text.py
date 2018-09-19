@@ -1,4 +1,5 @@
 import re
+from json import loads
 from pprint import pformat
 from collections import OrderedDict
 
@@ -62,3 +63,15 @@ def safe_dict_path(d, *path, **opts):
     for key in path:
         value = (value or {}).get(key, None)
     return value or default
+
+
+def safe_loads(raw_data):
+    try:
+        data = loads(raw_data)
+    except ValueError:
+        data = []
+    if data and isinstance(data, list):
+        data = data[0]
+    if not data or not isinstance(data, dict):
+        data = None
+    return data or {}

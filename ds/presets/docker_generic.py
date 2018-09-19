@@ -1,6 +1,5 @@
 import os
 from os.path import exists, join, expanduser
-from json import loads
 from logging import getLogger
 
 from ds.command import Command
@@ -10,27 +9,6 @@ from ds import text
 
 
 logger = getLogger(__name__)
-
-
-class _InspectData(object):
-    def __init__(self, data):
-        self._raw_data = data
-        self._data = None
-
-    @property
-    def data(self):
-        if self._data is None:
-            data = loads(self._raw_data)
-            if data and isinstance(data, list):
-                data = data[0]
-            if not data or not isinstance(data, dict):
-                data = None
-            self._data = data or {}
-        return self._data
-
-    @property
-    def is_running(self):
-        return text.safe_dict_path(self.data, 'State', 'Running', default=False)
 
 
 class DockerContext(context.Context):
@@ -64,6 +42,7 @@ class DockerContext(context.Context):
             Shell,
             RootShell,
             Inspect,
+            InspectNetworks,
         ]
 
     @property
@@ -119,6 +98,22 @@ class DockerContext(context.Context):
 
     def _make_mount(self, src, dest, mode='ro'):
         return (src, dest, mode)
+
+
+class _InspectData(object):
+    def __init__(self, data):
+        self._raw_data = data
+        self._data = None
+
+    @property
+    def data(self):
+        if self._data is None:
+            self._data = text.safe_loads(self._raw_data)
+        return self._data
+
+    @property
+    def is_running(self):
+        return text.safe_dict_path(self.data, 'State', 'Running', default=False)
 
 
 class _DockerCommand(Command):
@@ -223,6 +218,20 @@ class Inspect(_DockerCommand):
         ])
 
 
+class InspectNetworks(_DockerCommand):
+    usage = 'usage: {name} [<args>...]'
+    consume_all_args = True
+
+    def invoke_with_args(self, args):
+        if not self.ensure_running_state():
+            return
+        self.context.executor.append([
+            ('docker', 'inspect'),
+            ('-f', '{{json .NetworkSettings.Networks }}'),
+            self.context.container_name,
+        ])
+
+
 class Logs(_DockerCommand):
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
@@ -237,9 +246,9 @@ class Logs(_DockerCommand):
 
 class Exec(_DockerCommand):
     usage = 'usage: {name} [<args>...]'
+    consume_all_args = True
 
     user = None
-    consume_all_args = True
 
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
