@@ -46,7 +46,7 @@ def pretty_print_object(instance):
             continue
         value = getattr(instance, key)
         if callable(value):
-            return
+            continue
         if isinstance(value, OrderedDict):
             value = dict(value)
         formatted_value = pformat(value, indent=1)
