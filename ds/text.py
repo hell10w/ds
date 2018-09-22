@@ -61,21 +61,33 @@ def safe_dict_path(d, *path, **opts):
     default = opts.pop('default', None)
     value = d
     for key in path:
+        if not value:
+            break
         value = (value or {}).get(key, None)
     return value or default
 
 
-def safe_loads(raw_data):
+def safe_loads(raw_data, *path):
     try:
         data = loads(raw_data)
     except ValueError:
-        data = []
-    if data and isinstance(data, list):
-        data = data[0]
-    if not data or not isinstance(data, dict):
         data = None
+    for part in path:
+        if not data:
+            break
+        try:
+            data = data[part]
+        except (IndexError, KeyError):
+            break
     return data or {}
 
 
 def join_not_empty(sep, *args):
     return sep.join([arg for arg in args if arg])
+
+
+def iter_with_last(items):
+    for item in items[:-1]:
+        yield False, item
+    for item in items[-1:]:
+        yield True, item

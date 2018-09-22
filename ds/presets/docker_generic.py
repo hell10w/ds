@@ -33,9 +33,10 @@ class DockerContext(context.Context):
     def get_all_commands(self):
         return super(DockerContext, self).get_all_commands() + [
             Status,
+            Ps,
             Start,
-            Stop,
             Up,
+            Stop,
             Down,
             Restart,
             Rm,
@@ -113,7 +114,7 @@ class _InspectData(object):
     @property
     def data(self):
         if self._data is None:
-            self._data = text.safe_loads(self._raw_data)
+            self._data = text.safe_loads(self._raw_data, 0)
         return self._data
 
     @property
@@ -148,6 +149,7 @@ class _DockerCommand(Command):
 
 class Start(_DockerCommand):
     usage = 'usage: {name} [<args>...]'
+    short_help = 'Start a container'
     consume_all_args = True
 
     def _collect_opts(self):
@@ -176,10 +178,13 @@ class Start(_DockerCommand):
 
 
 class Up(Start):
+    short_help = 'same as `start`'
     hidden = True
 
 
 class Stop(_DockerCommand):
+    short_help = 'Stop a container'
+
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
             return
@@ -190,10 +195,12 @@ class Stop(_DockerCommand):
 
 
 class Down(Stop):
+    short_help = 'same as `stop`'
     hidden = True
 
 
 class Restart(_DockerCommand):
+    short_help = 'Restart a container'
     usage = 'usage: {name} [<args>...]'
     consume_all_args = True
 
@@ -204,6 +211,8 @@ class Restart(_DockerCommand):
 
 
 class Rm(_DockerCommand):
+    short_help = 'Remove a container'
+
     def invoke_with_args(self, args):
         if self.inspect_data.is_running:
             self.context.stop()
@@ -214,6 +223,8 @@ class Rm(_DockerCommand):
 
 
 class Attach(_DockerCommand):
+    short_help = 'Attach a local stdin/stdout/strerr to a container'
+
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
             return
@@ -226,6 +237,7 @@ class Attach(_DockerCommand):
 
 
 class Inspect(_DockerCommand):
+    short_help = 'Return low-level information on Docker objects'
     usage = 'usage: {name} [<args>...]'
     consume_all_args = True
 
@@ -240,6 +252,7 @@ class Inspect(_DockerCommand):
 
 
 class ShowNetworks(_DockerCommand):
+    short_help = 'Show a networks info of a container'
     usage = 'usage: {name}'
     consume_all_args = True
 
@@ -254,12 +267,21 @@ class ShowNetworks(_DockerCommand):
 
 
 class Status(_DockerCommand):
+    short_help = 'Show a short summary of container\'s status'
+
     def invoke_with_args(self, args):
         is_running = self.inspect_data.is_running
         print(self._format_running_status(is_running))
 
 
+class Ps(Status):
+    short_help = 'same as `status`'
+    hidden = True
+
+
 class Logs(_DockerCommand):
+    short_help = 'Fetch the logs of a container'
+
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
             return
@@ -272,7 +294,8 @@ class Logs(_DockerCommand):
 
 
 class Exec(_DockerCommand):
-    usage = 'usage: {name} [<args>...]'
+    short_help = 'Run a command in a container'
+    usage = 'usage: {name} <args>...'
     consume_all_args = True
 
     user = None
@@ -295,6 +318,14 @@ class Exec(_DockerCommand):
 
 
 class Shell(Exec):
+    @property
+    def short_help(self):
+        shell = self.context.container_shell
+        uid = self.context.container_uid
+        if self.user is not None:
+            uid = self.user
+        return 'Run {} in a container with uid {}'.format(shell, uid)
+
     def get_command_args(self):
         return self.context.container_shell,
 
@@ -307,6 +338,8 @@ class RootShell(Shell):
 
 
 class Build(_DockerCommand):
+    short_help = 'Build an image'
+
     def invoke_with_args(self, args):
         self.context.executor.append([
             ('docker', 'build'),
@@ -315,6 +348,8 @@ class Build(_DockerCommand):
 
 
 class Pull(_DockerCommand):
+    short_help = 'Pull an image'
+
     def invoke_with_args(self, args):
         self.context.executor.append([
             ('docker', 'pull'),

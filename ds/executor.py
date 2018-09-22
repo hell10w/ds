@@ -44,17 +44,10 @@ class Executor(object):
     def commit(self, replace=False):
         queue = self._queue
         self._queue = []
-        for is_last, (item, opts) in _iter_with_last(queue):
+        for is_last, (item, opts) in text.iter_with_last(queue):
             if is_last and replace:
                 self._replace(item, **opts)
                 return
             value = self._call(item, **opts)
             if is_last:
                 return value
-
-
-def _iter_with_last(items):
-    for item in items[:-1]:
-        yield False, item
-    for item in items[-1:]:
-        yield True, item
