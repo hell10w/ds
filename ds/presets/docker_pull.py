@@ -4,7 +4,12 @@ from docker_generic import DockerContext, Pull
 
 
 class Context(DockerContext):
-    image_name = environ.get('DS_IMAGE') or 'debian:latest'
+    def get_image_name(self):
+        return environ.get('DS_IMAGE') or 'debian:latest'
+
+    @property
+    def image_name(self):
+        return self.get_image_name()
 
     def get_all_commands(self):
         return super(Context, self).get_all_commands() + [

@@ -16,7 +16,7 @@ class DockerContext(context.Context):
     def container_name(self):
         return self.project_name
 
-    prefix = 'ds'
+    prefix = None
 
     container_working_dir = '/app/'
     container_home = '/'
@@ -32,8 +32,11 @@ class DockerContext(context.Context):
 
     def get_all_commands(self):
         return super(DockerContext, self).get_all_commands() + [
+            Status,
             Start,
             Stop,
+            Up,
+            Down,
             Restart,
             Rm,
             Logs,
@@ -42,20 +45,16 @@ class DockerContext(context.Context):
             Shell,
             RootShell,
             Inspect,
-            InspectNetworks,
+            ShowNetworks,
         ]
 
     @property
-    def container_name(self):
-        return self.project_name
-
-    @property
     def image_name(self):
-        return '/'.join([self.prefix, self.project_name])
+        return text.join_not_empty('/', self.prefix, self.project_name)
 
     @property
     def container_name(self):
-        return '--'.join([self.prefix, self.project_name])
+        return text.join_not_empty('--', self.prefix, self.project_name)
 
     @property
     def container_uid(self):
@@ -65,16 +64,22 @@ class DockerContext(context.Context):
     def container_gid(self):
         return os.getgid()
 
+    def get_home_mounts(self):
+        return [
+            '.bashrc',
+            '.inputrc',
+            '.config/bash',
+            '.psqlrc',
+            '.liquidpromptrc',
+        ]
+
     def get_container_mounts(self):
         result = []
 
         if self.container_home:
             result.extend([
-                self._make_home_mount('.bashrc'),
-                self._make_home_mount('.inputrc'),
-                self._make_home_mount('.config/bash'),
-                self._make_home_mount('.psqlrc'),
-                self._make_home_mount('.liquidpromptrc'),
+                self._make_home_mount(item)
+                for item in self.get_home_mounts()
             ])
 
         if self.container_working_dir:
@@ -117,14 +122,17 @@ class _InspectData(object):
 
 
 class _DockerCommand(Command):
+    def _format_running_status(self, is_running):
+        state = {
+            True: 'running',
+            False: 'not running',
+        }[is_running]
+        return 'Container is {}'.format(state)
+
     def ensure_running_state(self, expected=True):
         is_running = self.inspect_data.is_running
         if is_running != expected:
-            state = {
-                True: 'running',
-                False: 'not running',
-            }[is_running]
-            logger.error('Container is %s', state)
+            logger.error(self._format_running_status(is_running))
             return False
         return True
 
@@ -142,11 +150,8 @@ class Start(_DockerCommand):
     usage = 'usage: {name} [<args>...]'
     consume_all_args = True
 
-    def invoke_with_args(self, args):
-        if not self.ensure_running_state(expected=False):
-            return
-        self.context.executor.append([
-            ('docker', 'run'),
+    def _collect_opts(self):
+        return (
             '-it',
             '-d' if self.context.container_detach else (),
             '--rm' if self.context.container_rm else (),
@@ -157,9 +162,21 @@ class Start(_DockerCommand):
             ],
             ('-w', self.context.container_working_dir) if self.context.container_working_dir else (),
             ('--name', self.context.container_name),
+        )
+
+    def invoke_with_args(self, args):
+        if not self.ensure_running_state(expected=False):
+            return
+        self.context.executor.append([
+            ('docker', 'run'),
+            self._collect_opts(),
             self.context.image_name,
             args,
         ])
+
+
+class Up(Start):
+    hidden = True
 
 
 class Stop(_DockerCommand):
@@ -170,6 +187,10 @@ class Stop(_DockerCommand):
             ('docker', 'stop'),
             self.context.container_name,
         ])
+
+
+class Down(Stop):
+    hidden = True
 
 
 class Restart(_DockerCommand):
@@ -218,8 +239,8 @@ class Inspect(_DockerCommand):
         ])
 
 
-class InspectNetworks(_DockerCommand):
-    usage = 'usage: {name} [<args>...]'
+class ShowNetworks(_DockerCommand):
+    usage = 'usage: {name}'
     consume_all_args = True
 
     def invoke_with_args(self, args):
@@ -230,6 +251,12 @@ class InspectNetworks(_DockerCommand):
             ('-f', '{{json .NetworkSettings.Networks }}'),
             self.context.container_name,
         ])
+
+
+class Status(_DockerCommand):
+    def invoke_with_args(self, args):
+        is_running = self.inspect_data.is_running
+        print(self._format_running_status(is_running))
 
 
 class Logs(_DockerCommand):

@@ -75,3 +75,7 @@ def safe_loads(raw_data):
     if not data or not isinstance(data, dict):
         data = None
     return data or {}
+
+
+def join_not_empty(sep, *args):
+    return sep.join([arg for arg in args if arg])
