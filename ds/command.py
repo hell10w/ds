@@ -1,7 +1,7 @@
 from weakref import ref
 
-from six import with_metaclass
 from docopt import docopt
+from six import with_metaclass
 
 from ds import text
 
@@ -36,8 +36,8 @@ class Command(BaseCommand):
         if self.consume_all_args:
             return command_line
         usage = self.usage.format(name=self._name)
-        return docopt(usage, argv=command_line,
-                      options_first=self.options_first)
+        return docopt(
+            usage, argv=command_line, options_first=self.options_first)
 
     def invoke_with_args(self, args):
         raise NotImplementedError

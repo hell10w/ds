@@ -1,4 +1,5 @@
-from docker_generic import DockerContext, Build
+from docker_generic import Build
+from docker_generic import DockerContext
 
 
 class Context(DockerContext):

@@ -1,5 +1,9 @@
 import sys
-from logging import WARNING, INFO, DEBUG, ERROR, basicConfig
+from logging import basicConfig
+from logging import DEBUG
+from logging import ERROR
+from logging import INFO
+from logging import WARNING
 
 from docopt import docopt
 

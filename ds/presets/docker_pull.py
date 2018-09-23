@@ -1,6 +1,7 @@
 from os import environ
 
-from docker_generic import DockerContext, Pull
+from docker_generic import DockerContext
+from docker_generic import Pull
 
 
 class Context(DockerContext):

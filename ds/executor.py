@@ -1,13 +1,13 @@
-from os import execvp
+from collections import namedtuple
 from logging import getLogger
-from subprocess import Popen, PIPE
+from os import execvp
 from subprocess import call
 from subprocess import CalledProcessError
 from subprocess import check_output
-from collections import namedtuple
+from subprocess import PIPE
+from subprocess import Popen
 
 from ds import text
-
 
 logger = getLogger(__name__)
 

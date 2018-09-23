@@ -1,7 +1,7 @@
 import re
+from collections import OrderedDict
 from json import loads
 from pprint import pformat
-from collections import OrderedDict
 
 
 def format_columns(*items, **opts):

@@ -2,11 +2,12 @@ import sys
 from collections import OrderedDict
 from logging import getLogger
 
-from ds.command import _complete, _show_context
-from ds import text
+from ds import executor
 from ds import flow
 from ds import fs
-from ds import executor
+from ds import text
+from ds.command import _complete
+from ds.command import _show_context
 
 
 BASE_USAGE = 'usage: ds [-v|-vv|-vvv] [--version] [--help] ' \
@@ -38,10 +39,9 @@ class BaseContext(object):
     executor_class = executor.Executor
 
     def __init__(self):
-        self._commands = OrderedDict([
-            (command_class._name, command_class(self))
-            for command_class in self.get_all_commands()
-        ])
+        self._commands = OrderedDict(
+            [(command_class._name, command_class(self))
+             for command_class in self.get_all_commands()])
         self._executor = None
 
     def get_all_commands(self):
@@ -98,7 +98,8 @@ class Context(BaseContext):
     def run(self):
         pre_usage_options = flow.pre_usage(PRE_USAGE)
 
-        self._executor = self.executor_class(simulate=pre_usage_options.get('--simulate'))
+        self._executor = self.executor_class(
+            simulate=pre_usage_options.get('--simulate'))
 
         verbose_level = pre_usage_options.get('-v')
         flow.setup_logging_level(verbose_level)

@@ -1,12 +1,14 @@
 import os
-from os.path import exists, join, expanduser
 from logging import getLogger
+from os.path import exists
+from os.path import expanduser
+from os.path import join
 
-from ds.command import Command
 from ds import context
 from ds import fs
 from ds import text
-
+from ds.command import Command
+from ds.presets import docker_network
 
 logger = getLogger(__name__)
 
@@ -23,12 +25,17 @@ class DockerContext(context.Context):
 
     container_rm = True
 
-    container_detach = True
+    container_detach = False
     container_detach_keys = 'ctrl-c'
 
     container_logs_tail = 100
 
     container_shell = '/bin/bash'
+
+    after_startup_command = 'logs'
+
+    #  networks = HostNetwork(),
+    networks = docker_network.BridgeNetwork(),
 
     def get_all_commands(self):
         return super(DockerContext, self).get_all_commands() + [
@@ -79,25 +86,20 @@ class DockerContext(context.Context):
 
         if self.container_home:
             result.extend([
-                self._make_home_mount(item)
-                for item in self.get_home_mounts()
+                self._make_home_mount(item) for item in self.get_home_mounts()
             ])
 
         if self.container_working_dir:
-            result.append((self.project_root, self.container_working_dir, 'rw'))
+            result.append((self.project_root, self.container_working_dir,
+                           'rw'))
 
-        return [
-            self._make_mount(*item)
-            for item in result
-        ]
+        return [self._make_mount(*item) for item in result]
 
     @property
     def container_mounts(self):
-        return [
-            (src, dest, mode)
-            for src, dest, mode in self.get_container_mounts()
-            if exists(src)
-        ]
+        return [(src, dest, mode)
+                for src, dest, mode in self.get_container_mounts()
+                if exists(src)]
 
     def _make_home_mount(self, src):
         return expanduser(join('~', src)), join(self.container_home, src)
@@ -119,7 +121,8 @@ class _InspectData(object):
 
     @property
     def is_running(self):
-        return text.safe_dict_path(self.data, 'State', 'Running', default=False)
+        return text.safe_dict_path(
+            self.data, 'State', 'Running', default=False)
 
 
 class _DockerCommand(Command):
@@ -157,12 +160,13 @@ class Start(_DockerCommand):
             '-it',
             '-d' if self.context.container_detach else (),
             '--rm' if self.context.container_rm else (),
-            ('-u', '{}:{}'.format(self.context.container_uid, self.context.container_gid)) if self.context.container_uid is not None else (),
-            [
-                ('-v', ':'.join(mountpoint))
-                for mountpoint in self.context.container_mounts
-            ],
-            ('-w', self.context.container_working_dir) if self.context.container_working_dir else (),
+            ('-u', '{}:{}'.format(self.context.container_uid,
+                                  self.context.container_gid))
+            if self.context.container_uid is not None else (),
+            [('-v', ':'.join(mountpoint))
+             for mountpoint in self.context.container_mounts],
+            ('-w', self.context.container_working_dir)
+            if self.context.container_working_dir else (),
             ('--name', self.context.container_name),
         )
 
@@ -175,6 +179,9 @@ class Start(_DockerCommand):
             self.context.image_name,
             args,
         ])
+        command = self.context.after_startup_command
+        if command and self.context.container_detach:
+            self.context[command].invoke()
 
 
 class Up(Start):
@@ -228,7 +235,8 @@ class Attach(_DockerCommand):
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
             return
-        print('Note: Press {} to dettach'.format(self.context.container_detach_keys))
+        print('Note: Press {} to dettach'.format(
+            self.context.container_detach_keys))
         self.context.executor.append([
             ('docker', 'attach'),
             ('--detach-keys', self.context.container_detach_keys),
