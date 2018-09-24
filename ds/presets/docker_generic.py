@@ -34,8 +34,7 @@ class DockerContext(context.Context):
 
     after_startup_command = 'logs'
 
-    #  networks = HostNetwork(),
-    networks = docker_network.BridgeNetwork(),
+    container_networks = 'host',
 
     def get_all_commands(self):
         return super(DockerContext, self).get_all_commands() + [
@@ -160,6 +159,7 @@ class Start(_DockerCommand):
             '-it',
             '-d' if self.context.container_detach else (),
             '--rm' if self.context.container_rm else (),
+            (('--network', network) for network in self.container_networks),
             ('-u', '{}:{}'.format(self.context.container_uid,
                                   self.context.container_gid))
             if self.context.container_uid is not None else (),

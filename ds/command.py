@@ -1,9 +1,11 @@
+from __future__ import print_function
 from weakref import ref
 
 from docopt import docopt
 from six import with_metaclass
 
 from ds import text
+from ds import fs
 
 
 class CommandMeta(type):
@@ -52,12 +54,26 @@ class Command(BaseCommand):
         return self.invoke(*args, **kwargs)
 
 
-class _complete(Command):
+class _all_contexts(Command):
     hidden = True
+    consume_all_args = False
+
+    def invoke_with_args(self, args):
+        print(' '.join(fs.find_contexts()))
+
+
+class _all_commands(Command):
+    hidden = True
+    consume_all_args = False
+
+    def invoke_with_args(self, args):
+        print(' '.join(self.context.commands.keys()))
 
 
 class _show_context(Command):
     hidden = True
 
     def invoke_with_args(self, args):
+        context_class = self.context.__class__
+        print('Context:', context_class, context_class.__module__)
         text.pretty_print_object(self.context)

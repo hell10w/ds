@@ -19,7 +19,7 @@ setup(
     test_suite='tests',
     entry_points={
         'console_scripts': [
-            'packagename = ds.__main__:main',
-        ]
-    }
+            'ds=ds.__main__:main',
+        ],
+    },
 )

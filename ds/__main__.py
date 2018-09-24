@@ -15,6 +15,8 @@ def main():
         from ds.load_context import load_context
 
     Context = load_context()
+    if Context is None:
+        logger.error('Context is not loaded')
     Context().run()
 
 

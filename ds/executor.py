@@ -38,7 +38,6 @@ class Executor(object):
         logger.debug('Replace with %s', args)
         if self._simulate:
             return
-        #  execvp('/bin/sh', ('/bin/sh', '-c', ' '.join(args)))
         execvp(args[0], args[:])
 
     def commit(self, replace=False):

@@ -6,15 +6,18 @@ from ds import executor
 from ds import flow
 from ds import fs
 from ds import text
-from ds.command import _complete
+from ds.command import _all_commands
+from ds.command import _all_contexts
 from ds.command import _show_context
 
 
 BASE_USAGE = 'usage: ds [-v|-vv|-vvv] [--version] [--help] ' \
+             '[-c <context>] ' \
              '[--simulate] '
 BASE_OPTIONS = """
- --simulate         Do nothing
- -v|-vv|-vvv        Verbosity level
+ --simulate      Do nothing
+ -v|-vv|-vvv     Verbosity level
+ -c <context>    Context module name
 """.strip('\n')
 
 PRE_USAGE = BASE_USAGE + """[<args>...]
@@ -77,7 +80,8 @@ class BaseContext(object):
 class Context(BaseContext):
     def get_all_commands(self):
         return super(Context, self).get_all_commands() + [
-            _complete,
+            _all_contexts,
+            _all_commands,
             _show_context,
         ]
 
