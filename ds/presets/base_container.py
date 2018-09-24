@@ -8,7 +8,6 @@ from ds import context
 from ds import fs
 from ds import text
 from ds.command import Command
-from ds.presets import docker_network
 
 logger = getLogger(__name__)
 
@@ -25,7 +24,7 @@ class DockerContext(context.Context):
 
     container_rm = True
 
-    container_detach = False
+    container_detach = True
     container_detach_keys = 'ctrl-c'
 
     container_logs_tail = 100
@@ -159,7 +158,7 @@ class Start(_DockerCommand):
             '-it',
             '-d' if self.context.container_detach else (),
             '--rm' if self.context.container_rm else (),
-            (('--network', network) for network in self.container_networks),
+            [('--network', network) for network in self.context.container_networks],
             ('-u', '{}:{}'.format(self.context.container_uid,
                                   self.context.container_gid))
             if self.context.container_uid is not None else (),

@@ -18,12 +18,12 @@ from ds.decorators import cached_func
 HIDDEN_PREFIX = '.ds'
 
 
-def relative(*parts):
-    return join(dirname(__file__), *parts)
-
-
 def clean_path(path):
     return abspath(realpath(path))
+
+
+def relative(*parts):
+    return clean_path(join(dirname(__file__), *parts))
 
 
 @cached_func

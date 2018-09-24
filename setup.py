@@ -4,7 +4,7 @@ from setuptools import setup
 import ds
 
 setup(
-    name='ds',
+    name='dsjk',
     version=ds.__version__,
     author='',
     author_email='',
@@ -17,6 +17,7 @@ setup(
         'docopt',
     ],
     test_suite='tests',
+    include_package_data=True,
     entry_points={
         'console_scripts': [
             'ds=ds.__main__:main',

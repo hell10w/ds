@@ -5,8 +5,8 @@
 #
 
 __ds_debug () {
-  return
   # echo "$1" >> /tmp/ds-debug
+  return
 }
 
 __ds () {

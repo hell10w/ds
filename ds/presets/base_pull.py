@@ -1,12 +1,14 @@
 from os import environ
 
-from docker_generic import DockerContext
-from docker_generic import Pull
+from base_container import DockerContext
+from base_container import Pull
 
 
 class Context(DockerContext):
+    default_image = 'debian:latest'
+
     def get_image_name(self):
-        return environ.get('DS_IMAGE') or 'debian:latest'
+        return environ.get('DS_IMAGE') or self.default_image
 
     @property
     def image_name(self):

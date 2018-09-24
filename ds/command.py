@@ -54,24 +54,17 @@ class Command(BaseCommand):
         return self.invoke(*args, **kwargs)
 
 
-class _all_contexts(Command):
+class HiddenCommand(Command):
     hidden = True
-    consume_all_args = False
-
-    def invoke_with_args(self, args):
-        print(' '.join(fs.find_contexts()))
 
 
-class _all_commands(Command):
-    hidden = True
-    consume_all_args = False
-
+class ListCommands(HiddenCommand):
     def invoke_with_args(self, args):
         print(' '.join(self.context.commands.keys()))
 
 
-class _show_context(Command):
-    hidden = True
+class ShowContext(Command):
+    short_help = 'Show a context info'
 
     def invoke_with_args(self, args):
         context_class = self.context.__class__
