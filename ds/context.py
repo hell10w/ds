@@ -59,19 +59,24 @@ class BaseContext(object):
     def run(self):
         pass
 
-    def __getitem__(self, key):
-        for candidate in (key, key.replace('_', '-')):
+    def get_command(self, name):
+        for candidate in (name, name.replace('_', '-')):
             if candidate in self.commands:
                 return self.commands[candidate]
+
+    def __getitem__(self, key):
+        command = self.get_command(key)
+        if command:
+            return command
         raise KeyError
 
     def __getattribute__(self, name):
         try:
             return super(BaseContext, self).__getattribute__(name)
         except AttributeError:
-            for candidate in (name, name.replace('_', '-')):
-                if candidate in self.commands:
-                    return self.commands[candidate]
+            command = self.get_command(name)
+            if command:
+                return command
             raise
 
 

@@ -1,7 +1,8 @@
 import re
 from collections import OrderedDict
-from json import loads
+from json import loads, dumps
 from pprint import pformat
+import hashlib
 
 
 def format_columns(*items, **opts):
@@ -91,3 +92,9 @@ def iter_with_last(items):
         yield False, item
     for item in items[-1:]:
         yield True, item
+
+
+def signature(opts):
+    m = hashlib.sha1()
+    m.update(dumps(flatten(opts)))
+    return m.hexdigest()

@@ -12,6 +12,9 @@ from ds.command import Command
 logger = getLogger(__name__)
 
 
+_DS_SIGN_LABEL = 'ds.opts'
+
+
 class DockerContext(context.Context):
     @property
     def container_name(self):
@@ -19,21 +22,22 @@ class DockerContext(context.Context):
 
     prefix = None
 
-    container_working_dir = '/app/'
-    container_home = '/'
+    recreate_on_signature_mismatch = True
 
-    container_rm = True
+    mount_project_root = True
+    working_dir = '/app/'
+    home = '/'
 
-    container_detach = True
-    container_detach_keys = 'ctrl-c'
+    remove_on_stop = True
 
-    container_logs_tail = 100
+    detach = False
+    detach_keys = 'ctrl-c'
 
-    container_shell = '/bin/bash'
+    logs_tail = 100
 
-    after_startup_command = 'logs'
+    shell = '/bin/bash'
 
-    container_networks = 'host',
+    networks = 'host',
 
     def get_all_commands(self):
         return super(DockerContext, self).get_all_commands() + [
@@ -44,6 +48,7 @@ class DockerContext(context.Context):
             Stop,
             Down,
             Restart,
+            Recreate,
             Rm,
             Logs,
             Attach,
@@ -63,47 +68,63 @@ class DockerContext(context.Context):
         return text.join_not_empty('--', self.prefix, self.project_name)
 
     @property
-    def container_uid(self):
+    def uid(self):
         return os.getuid()
 
     @property
-    def container_gid(self):
+    def gid(self):
         return os.getgid()
 
-    def get_home_mounts(self):
-        return [
-            '.bashrc',
-            '.inputrc',
-            '.config/bash',
-            '.psqlrc',
-            '.liquidpromptrc',
+    def get_mounts(self):
+        result = [
+            HomeMount('.bashrc'),
+            HomeMount('.inputrc'),
+            HomeMount('.config/bash'),
+            HomeMount('.psqlrc'),
+            HomeMount('.liquidpromptrc'),
         ]
-
-    def get_container_mounts(self):
-        result = []
-
-        if self.container_home:
-            result.extend([
-                self._make_home_mount(item) for item in self.get_home_mounts()
-            ])
-
-        if self.container_working_dir:
-            result.append((self.project_root, self.container_working_dir,
-                           'rw'))
-
-        return [self._make_mount(*item) for item in result]
+        if self.mount_project_root:
+            dest = self.working_dir or '/project/'
+            result.append(Mount(self.project_root, dest))
+        return result
 
     @property
-    def container_mounts(self):
-        return [(src, dest, mode)
-                for src, dest, mode in self.get_container_mounts()
-                if exists(src)]
+    def mounts(self):
+        result = []
+        for mount in self.get_mounts():
+            realized = mount(self)
+            if not realized:
+                continue
+            result.append(realized)
+        return result
 
-    def _make_home_mount(self, src):
-        return expanduser(join('~', src)), join(self.container_home, src)
+    def on_startup(self):
+        self.logs()
 
-    def _make_mount(self, src, dest, mode='ro'):
-        return (src, dest, mode)
+
+class Mount(object):
+    def __init__(self, src, dest, mode='rw'):
+        self.src = src
+        self.dest = dest
+        self.mode = mode
+
+    def __call__(self, context):
+        return (self.src, self.dest, self.mode)
+
+
+class HomeMount(Mount):
+    def __init__(self, src, mode='ro'):
+        self.src = src
+        self.mode = mode
+
+    def __call__(self, context):
+        if not context.home:
+            return
+        src = expanduser(join('~', self.src))
+        if not exists(src):
+            return
+        dest = join(context.home, self.src)
+        return (src, dest, self.mode)
 
 
 class _InspectData(object):
@@ -122,6 +143,15 @@ class _InspectData(object):
         return text.safe_dict_path(
             self.data, 'State', 'Running', default=False)
 
+    @property
+    def labels(self):
+        return text.safe_dict_path(
+            self.data, 'Config', 'Labels', default={})
+
+    @property
+    def signature(self):
+        return self.labels.get(_DS_SIGN_LABEL, None)
+
 
 class _DockerCommand(Command):
     def _format_running_status(self, is_running):
@@ -139,6 +169,10 @@ class _DockerCommand(Command):
         return True
 
     @property
+    def current_signature(self):
+        return self.inspect_data.signature
+
+    @property
     def inspect_data(self):
         self.context.executor.append([
             ('docker', 'inspect'),
@@ -148,7 +182,7 @@ class _DockerCommand(Command):
         return _InspectData(result.stdout)
 
 
-class Start(_DockerCommand):
+class _Start(_DockerCommand):
     usage = 'usage: {name} [<args>...]'
     short_help = 'Start a container'
     consume_all_args = True
@@ -156,39 +190,54 @@ class Start(_DockerCommand):
     def _collect_opts(self):
         return (
             '-it',
-            '-d' if self.context.container_detach else (),
-            '--rm' if self.context.container_rm else (),
-            [('--network', network) for network in self.context.container_networks],
-            ('-u', '{}:{}'.format(self.context.container_uid,
-                                  self.context.container_gid))
-            if self.context.container_uid is not None else (),
+            '-d' if self.context.detach else (),
+            '--rm' if self.context.remove_on_stop else (),
+            [('--network', network) for network in self.context.networks],
+            ('-u', '{}:{}'.format(self.context.uid,
+                                  self.context.gid))
+            if self.context.uid is not None else (),
             [('-v', ':'.join(mountpoint))
-             for mountpoint in self.context.container_mounts],
-            ('-w', self.context.container_working_dir)
-            if self.context.container_working_dir else (),
-            ('--name', self.context.container_name),
+             for mountpoint in self.context.mounts],
+            ('-w', self.context.working_dir)
+            if self.context.working_dir else (),
         )
 
     def invoke_with_args(self, args):
-        if not self.ensure_running_state(expected=False):
-            return
-        self.context.executor.append([
-            ('docker', 'run'),
-            self._collect_opts(),
-            self.context.image_name,
-            args,
-        ])
-        command = self.context.after_startup_command
-        if command and self.context.container_detach:
-            self.context[command].invoke()
+        opts = self._collect_opts()
+        signature = text.signature(opts)
+
+        changed = self.current_signature != signature
+        if changed:
+            logger.warning('Configuration have been changed!')
+            if self.context.recreate_on_signature_mismatch:
+                self.context.stop()
+                self.context.rm()
+                self.context.executor.commit()
+
+        if self.ensure_running_state(expected=False):
+            self.context.executor.append([
+                ('docker', 'run'),
+                opts,
+                ('-l', '='.join([_DS_SIGN_LABEL, signature])),
+                ('--name', self.context.container_name),
+                self.context.image_name,
+                args,
+            ])
+            self.context.executor.commit()
+
+        if self.context.detach:
+            self.context.on_startup()
 
 
-class Up(Start):
-    short_help = 'same as `start`'
+class Start(_Start):
     hidden = True
 
 
-class Stop(_DockerCommand):
+class Up(_Start):
+    pass
+
+
+class _Stop(_DockerCommand):
     short_help = 'Stop a container'
 
     def invoke_with_args(self, args):
@@ -200,9 +249,24 @@ class Stop(_DockerCommand):
         ])
 
 
-class Down(Stop):
-    short_help = 'same as `stop`'
+class Stop(_Stop):
     hidden = True
+
+
+class Down(Stop):
+    pass
+
+
+class Recreate(_DockerCommand):
+    short_help = 'Recreate a container'
+    usage = 'usage: {name} [<args>...]'
+    consume_all_args = True
+
+    def invoke_with_args(self, args):
+        if self.inspect_data.is_running:
+            self.context.stop()
+            self.context.rm()
+        self.context.start(args)
 
 
 class Restart(_DockerCommand):
@@ -235,10 +299,10 @@ class Attach(_DockerCommand):
         if not self.ensure_running_state():
             return
         print('Note: Press {} to dettach'.format(
-            self.context.container_detach_keys))
+            self.context.detach_keys))
         self.context.executor.append([
             ('docker', 'attach'),
-            ('--detach-keys', self.context.container_detach_keys),
+            ('--detach-keys', self.context.detach_keys),
             self.context.container_name,
         ])
 
@@ -295,7 +359,7 @@ class Logs(_DockerCommand):
         self.context.executor.append([
             ('docker', 'logs'),
             '--follow',
-            ('--tail', str(self.context.container_logs_tail)),
+            ('--tail', str(self.context.logs_tail)),
             self.context.container_name,
         ])
 
@@ -327,21 +391,21 @@ class Exec(_DockerCommand):
 class Shell(Exec):
     @property
     def short_help(self):
-        shell = self.context.container_shell
-        uid = self.context.container_uid
+        shell = self.context.shell
+        uid = self.context.uid
         if self.user is not None:
             uid = self.user
         return 'Run {} in a container with uid {}'.format(shell, uid)
 
     def get_command_args(self):
-        return self.context.container_shell,
+        return self.context.shell,
 
 
 class RootShell(Shell):
     user = 0
 
     def get_command_args(self):
-        return self.context.container_shell,
+        return self.context.shell,
 
 
 class Build(_DockerCommand):
