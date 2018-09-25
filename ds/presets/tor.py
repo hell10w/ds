@@ -7,7 +7,6 @@ class Context(_Context):
 
     mount_project_root = False
     working_dir = None
-    home = '/'
 
     uid = None
 

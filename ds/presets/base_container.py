@@ -223,10 +223,10 @@ class _Start(_DockerCommand):
                 self.context.image_name,
                 args,
             ])
-            self.context.executor.commit()
 
         if self.context.detach:
             self.context.on_startup()
+
 
 
 class Start(_Start):
