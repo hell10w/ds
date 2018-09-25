@@ -62,11 +62,16 @@ def get_project_name():
 
 
 @cached_func
-def build_additional_import():
+def additional_import():
     result = {join(item, HIDDEN_PREFIX): None for item in walk_top()}
     result[users_home()] = None
     result[relative('presets')] = None
-    return [path for path in result.keys() if exists(path)]
+    return list(result.keys())
+
+
+@cached_func
+def existing_additional_import(exists_only=True):
+    return [path for path in additional_import() if exists(path)]
 
 
 def get_modules(path):
@@ -84,6 +89,6 @@ def get_modules(path):
 
 def find_contexts():
     result = []
-    for path in build_additional_import():
+    for path in additional_import():
         result += get_modules(path)
     return result

@@ -1,8 +1,8 @@
 from os import environ
 
-from base_container import ProjectPrefixedNaming
-from base_container import DockerContext
 from base_container import DockerCommand
+from base_container import DockerContext
+from base_container import ProjectPrefixedNaming
 
 
 class Context(DockerContext, ProjectPrefixedNaming):

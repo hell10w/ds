@@ -7,7 +7,7 @@ logger = getLogger(__name__)
 
 
 def main():
-    sys.path = fs.build_additional_import() + sys.path
+    sys.path = fs.existing_additional_import() + sys.path
 
     try:
         from context_loader import load_context

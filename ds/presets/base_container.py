@@ -33,7 +33,8 @@ class PrefixedNaming(Naming):
     @property
     def container_name(self):
         image_name = self.image_name.split(':', 1)[0]
-        return text.join_not_empty('--', self.prefix, text.sanitize_text(image_name))
+        return text.join_not_empty('--', self.prefix,
+                                   text.sanitize_text(image_name))
 
 
 class ProjectPrefixedNaming(PrefixedNaming):
@@ -81,14 +82,6 @@ class DockerContext(Naming, context.Context):
             Inspect,
             ShowNetworks,
         ]
-
-    #  @property
-    #  def image_name(self):
-    #      return text.join_not_empty('/', self.prefix, self.project_name)
-
-    #  @property
-    #  def container_name(self):
-    #      return text.join_not_empty('--', self.prefix, self.project_name)
 
     @property
     def uid(self):
@@ -326,7 +319,7 @@ class Rm(DockerCommand):
 
 
 class Attach(DockerCommand):
-    short_help = 'Attach a local stdin/stdout/strerr to a container'
+    short_help = 'Attach a local stdin/stdout to a container'
 
     def invoke_with_args(self, args):
         if not self.ensure_running_state():

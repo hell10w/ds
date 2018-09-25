@@ -5,7 +5,7 @@ from python import PythonContext
 
 class DjangoContext(DockerContext):
     def get_all_commands(self):
-        return super(PythonContext, self).get_all_commands() + [
+        return super(DjangoContext, self).get_all_commands() + [
             Manage,
             ShellPlus,
             Migrate,

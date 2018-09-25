@@ -1,10 +1,12 @@
 from __future__ import print_function
+from __future__ import unicode_literals
 
 from weakref import ref
 
 from docopt import docopt
 from six import with_metaclass
 
+from ds import fs
 from ds import text
 
 
@@ -69,4 +71,14 @@ class ShowContext(Command):
     def invoke_with_args(self, args):
         context_class = self.context.__class__
         print('Context:', context_class, context_class.__module__)
+
+        existing_additional_import = fs.existing_additional_import()
+        additional_import = fs.additional_import()
+        print('Existing additional imports:',
+              ';'.join(existing_additional_import))
+        print('Missing additional imports:', ';'.join([
+            path for path in additional_import
+            if path not in existing_additional_import
+        ]))
+
         text.pretty_print_object(self.context)

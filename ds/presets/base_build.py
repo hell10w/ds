@@ -1,5 +1,5 @@
-from base_container import DockerContext
 from base_container import DockerCommand
+from base_container import DockerContext
 
 
 class Context(DockerContext):
