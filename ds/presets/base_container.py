@@ -39,6 +39,8 @@ class DockerContext(context.Context):
 
     networks = 'host',
 
+    environment = {}
+
     def get_all_commands(self):
         return super(DockerContext, self).get_all_commands() + [
             Status,
@@ -196,6 +198,10 @@ class _Start(_DockerCommand):
             ('-u', '{}:{}'.format(self.context.uid,
                                   self.context.gid))
             if self.context.uid is not None else (),
+            [
+                ('-e', '='.join([key, value]))
+                for key, value in self.context.environment.items()
+            ],
             [('-v', ':'.join(mountpoint))
              for mountpoint in self.context.mounts],
             ('-w', self.context.working_dir)
