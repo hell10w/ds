@@ -1,4 +1,5 @@
-from base_container import Shell, ForeignContext, PersistentContext
+from base_container import ForeignContext
+from base_container import PersistentContext
 from base_pull import Context as PullContext
 
 

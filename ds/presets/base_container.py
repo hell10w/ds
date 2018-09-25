@@ -5,23 +5,44 @@ from os.path import expanduser
 from os.path import join
 
 from ds import context
-from ds import fs
 from ds import text
 from ds.command import Command
 
 logger = getLogger(__name__)
 
-
 _DS_SIGN_LABEL = 'ds.opts'
 
 
-class DockerContext(context.Context):
+class Naming(object):
+    @property
+    def image_name(self):
+        return text.join_not_empty('/', self.prefix, self.project_name)
+
     @property
     def container_name(self):
-        return self.project_name
+        return text.sanitize_text(self.image_name)
 
+
+class PrefixedNaming(Naming):
     prefix = None
 
+    @property
+    def image_name(self):
+        return text.join_not_empty('/', self.prefix, self.project_name)
+
+    @property
+    def container_name(self):
+        image_name = self.image_name.split(':', 1)[0]
+        return text.join_not_empty('--', self.prefix, text.sanitize_text(image_name))
+
+
+class ProjectPrefixedNaming(PrefixedNaming):
+    @property
+    def prefix(self):
+        return self.project_name
+
+
+class DockerContext(Naming, context.Context):
     recreate_on_signature_mismatch = True
 
     mount_project_root = True
@@ -61,13 +82,13 @@ class DockerContext(context.Context):
             ShowNetworks,
         ]
 
-    @property
-    def image_name(self):
-        return text.join_not_empty('/', self.prefix, self.project_name)
+    #  @property
+    #  def image_name(self):
+    #      return text.join_not_empty('/', self.prefix, self.project_name)
 
-    @property
-    def container_name(self):
-        return text.join_not_empty('--', self.prefix, self.project_name)
+    #  @property
+    #  def container_name(self):
+    #      return text.join_not_empty('--', self.prefix, self.project_name)
 
     @property
     def uid(self):
@@ -158,15 +179,14 @@ class _InspectData(object):
 
     @property
     def labels(self):
-        return text.safe_dict_path(
-            self.data, 'Config', 'Labels', default={})
+        return text.safe_dict_path(self.data, 'Config', 'Labels', default={})
 
     @property
     def signature(self):
         return self.labels.get(_DS_SIGN_LABEL, None)
 
 
-class _DockerCommand(Command):
+class DockerCommand(Command):
     def _format_running_status(self, is_running):
         state = {
             True: 'running',
@@ -195,7 +215,7 @@ class _DockerCommand(Command):
         return _InspectData(result.stdout)
 
 
-class _Start(_DockerCommand):
+class _Start(DockerCommand):
     usage = 'usage: {name} [<args>...]'
     short_help = 'Start a container'
     consume_all_args = True
@@ -206,13 +226,10 @@ class _Start(_DockerCommand):
             '-d' if self.context.detach else (),
             '--rm' if self.context.remove_on_stop else (),
             [('--network', network) for network in self.context.networks],
-            ('-u', '{}:{}'.format(self.context.uid,
-                                  self.context.gid))
+            ('-u', '{}:{}'.format(self.context.uid, self.context.gid))
             if self.context.uid is not None else (),
-            [
-                ('-e', '='.join([key, value]))
-                for key, value in self.context.environment.items()
-            ],
+            [('-e', '='.join([key, value]))
+             for key, value in self.context.environment.items()],
             [('-v', ':'.join(mountpoint))
              for mountpoint in self.context.mounts],
             ('-w', self.context.working_dir)
@@ -253,7 +270,7 @@ class Up(_Start):
     pass
 
 
-class _Stop(_DockerCommand):
+class _Stop(DockerCommand):
     short_help = 'Stop a container'
 
     def invoke_with_args(self, args):
@@ -273,7 +290,7 @@ class Down(Stop):
     pass
 
 
-class Recreate(_DockerCommand):
+class Recreate(DockerCommand):
     short_help = 'Recreate a container'
     usage = 'usage: {name} [<args>...]'
     consume_all_args = True
@@ -285,7 +302,7 @@ class Recreate(_DockerCommand):
         self.context.start(args)
 
 
-class Restart(_DockerCommand):
+class Restart(DockerCommand):
     short_help = 'Restart a container'
     usage = 'usage: {name} [<args>...]'
     consume_all_args = True
@@ -296,7 +313,7 @@ class Restart(_DockerCommand):
         self.context.start(args)
 
 
-class Rm(_DockerCommand):
+class Rm(DockerCommand):
     short_help = 'Remove a container'
 
     def invoke_with_args(self, args):
@@ -308,14 +325,13 @@ class Rm(_DockerCommand):
         ])
 
 
-class Attach(_DockerCommand):
+class Attach(DockerCommand):
     short_help = 'Attach a local stdin/stdout/strerr to a container'
 
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
             return
-        print('Note: Press {} to dettach'.format(
-            self.context.detach_keys))
+        print('Note: Press {} to dettach'.format(self.context.detach_keys))
         self.context.executor.append([
             ('docker', 'attach'),
             ('--detach-keys', self.context.detach_keys),
@@ -323,7 +339,7 @@ class Attach(_DockerCommand):
         ])
 
 
-class Inspect(_DockerCommand):
+class Inspect(DockerCommand):
     short_help = 'Return low-level information on Docker objects'
     usage = 'usage: {name} [<args>...]'
     consume_all_args = True
@@ -338,7 +354,7 @@ class Inspect(_DockerCommand):
         ])
 
 
-class ShowNetworks(_DockerCommand):
+class ShowNetworks(DockerCommand):
     short_help = 'Show a networks info of a container'
     usage = 'usage: {name}'
     consume_all_args = True
@@ -353,7 +369,7 @@ class ShowNetworks(_DockerCommand):
         ])
 
 
-class Status(_DockerCommand):
+class Status(DockerCommand):
     short_help = 'Show a short summary of container\'s status'
 
     def invoke_with_args(self, args):
@@ -366,7 +382,7 @@ class Ps(Status):
     hidden = True
 
 
-class Logs(_DockerCommand):
+class Logs(DockerCommand):
     short_help = 'Fetch the logs of a container'
 
     def invoke_with_args(self, args):
@@ -380,7 +396,7 @@ class Logs(_DockerCommand):
         ])
 
 
-class Exec(_DockerCommand):
+class Exec(DockerCommand):
     short_help = 'Run a command in a container'
     usage = 'usage: {name} <args>...'
     consume_all_args = True
@@ -422,23 +438,3 @@ class RootShell(Shell):
 
     def get_command_args(self):
         return self.context.shell,
-
-
-class Build(_DockerCommand):
-    short_help = 'Build an image'
-
-    def invoke_with_args(self, args):
-        self.context.executor.append([
-            ('docker', 'build'),
-            self.context.image_name,
-        ])
-
-
-class Pull(_DockerCommand):
-    short_help = 'Pull an image'
-
-    def invoke_with_args(self, args):
-        self.context.executor.append([
-            ('docker', 'pull'),
-            self.context.image_name,
-        ])

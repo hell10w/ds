@@ -1,11 +1,11 @@
 from __future__ import print_function
+
 from weakref import ref
 
 from docopt import docopt
 from six import with_metaclass
 
 from ds import text
-from ds import fs
 
 
 class CommandMeta(type):

@@ -1,9 +1,6 @@
 from collections import namedtuple
 from logging import getLogger
 from os import execvp
-from subprocess import call
-from subprocess import CalledProcessError
-from subprocess import check_output
 from subprocess import PIPE
 from subprocess import Popen
 

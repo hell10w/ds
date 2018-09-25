@@ -1,8 +1,10 @@
+from string import ascii_lowercase, digits
+import hashlib
 import re
 from collections import OrderedDict
-from json import loads, dumps
+from json import dumps
+from json import loads
 from pprint import pformat
-import hashlib
 
 
 def format_columns(*items, **opts):
@@ -98,3 +100,11 @@ def signature(opts):
     m = hashlib.sha1()
     m.update(dumps(flatten(opts)))
     return m.hexdigest()
+
+
+def sanitize_text(value, allowed=None, rep='--'):
+    allowed = allowed or (ascii_lowercase + digits)
+    return ''.join([
+        alpha if alpha in allowed else rep
+        for alpha in value.lower()
+    ])

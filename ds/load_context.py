@@ -1,8 +1,6 @@
 import importlib
-from os import environ
 
 from ds.flow import find_pre_usage_option
-from ds.context import PRE_USAGE
 
 
 def load_context():

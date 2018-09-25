@@ -1,12 +1,11 @@
-import sys
 from collections import OrderedDict
 from logging import getLogger
 
+from ds import command
 from ds import executor
 from ds import flow
 from ds import fs
 from ds import text
-from ds import command
 
 
 BASE_USAGE = 'usage: ds [-v|-vv|-vvv] [--version] [--help] ' \

@@ -1,17 +1,12 @@
-import imp
-import importlib
 import os
-from collections import OrderedDict
-from logging import getLogger
 from os.path import abspath
 from os.path import basename
 from os.path import dirname
 from os.path import exists
 from os.path import expanduser
+from os.path import isdir
 from os.path import join
 from os.path import realpath
-from os.path import sep
-from os.path import isdir
 
 from ds.decorators import cached_func
 
@@ -68,17 +63,10 @@ def get_project_name():
 
 @cached_func
 def build_additional_import():
-    result = {
-        join(item, HIDDEN_PREFIX): None
-        for item in walk_top()
-    }
+    result = {join(item, HIDDEN_PREFIX): None for item in walk_top()}
     result[users_home()] = None
     result[relative('presets')] = None
-    return [
-        path
-        for path in result.keys()
-        if exists(path)
-    ]
+    return [path for path in result.keys() if exists(path)]
 
 
 def get_modules(path):
