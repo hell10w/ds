@@ -1,8 +1,9 @@
 from base_container import Exec
-from base_pull import Context as _Context
+from base_container import Shell
+from base_pull import Context as PullContext
 
 
-class Context(_Context):
+class Context(PullContext):
     default_image = 'python:3.5'
 
     def get_all_commands(self):

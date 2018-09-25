@@ -1,22 +1,7 @@
-from base_container import Shell
-from base_pull import Context as _Context
+from base_container import Shell, ForeignContext, PersistentContext
+from base_pull import Context as PullContext
 
 
-class Context(_Context):
+class Context(PullContext, ForeignContext, PersistentContext):
     default_image = 'dperson/torproxy'
-
-    mount_project_root = False
-    working_dir = None
-
-    uid = None
-
-    remove_on_stop = False
-
-    detach = True
-
     container_name = 'tor'
-
-    def get_all_commands(self):
-        return super(Context, self).get_all_commands() + [
-            #
-        ]
