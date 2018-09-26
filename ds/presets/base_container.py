@@ -44,8 +44,6 @@ class ProjectPrefixedNaming(PrefixedNaming):
 
 
 class DockerContext(Naming, context.Context):
-    recreate_on_signature_mismatch = True
-
     mount_project_root = True
     working_dir = '/app/'
     home = '/'
@@ -171,12 +169,20 @@ class _InspectData(object):
             self.data, 'State', 'Running', default=False)
 
     @property
+    def is_present(self):
+        return text.safe_dict_path(self.data, 'State')
+
+    @property
     def labels(self):
         return text.safe_dict_path(self.data, 'Config', 'Labels', default={})
 
     @property
     def signature(self):
         return self.labels.get(_DS_SIGN_LABEL, None)
+
+    @property
+    def container_id(self):
+        return text.safe_dict_path(self.data, 'id')
 
 
 class DockerCommand(Command):
@@ -194,18 +200,29 @@ class DockerCommand(Command):
             return False
         return True
 
+    def ensure_present(self):
+        if not self.inspect_data.is_present:
+            return False
+        return True
+
     @property
     def current_signature(self):
         return self.inspect_data.signature
 
     @property
     def inspect_data(self):
-        self.context.executor.append([
-            ('docker', 'inspect'),
-            self.context.container_name,
-        ])
-        result = self.context.executor.commit()
-        return _InspectData(result.stdout)
+        data = getattr(self.context, '_inspect_data', None)
+
+        if not data or not self.context.executor.is_empty_queue:
+            self.context.executor.append([
+                ('docker', 'inspect'),
+                self.context.container_name,
+            ])
+            result = self.context.executor.commit()
+            data = _InspectData(result.stdout)
+            setattr(self.context, '_inspect_data', data)
+
+        return data
 
 
 class _Start(DockerCommand):
@@ -230,26 +247,46 @@ class _Start(DockerCommand):
         )
 
     def invoke_with_args(self, args):
+        if args and self.context.detach:
+            logger.error('`detach` is enabled. Arguments for `start` is not allowed in this case.')
+            return
+
         opts = self._collect_opts()
-        signature = text.signature(opts)
+        signature = text.signature(list(opts) + list(args))
 
-        changed = self.current_signature != signature
+        logger.debug('Previous signature is %s, current is %s', self.current_signature, signature)
+
+        changed = self.inspect_data.is_present and \
+                  self.current_signature != signature
         if changed:
-            logger.warning('Configuration have been changed!')
-            if self.context.recreate_on_signature_mismatch:
-                self.context.stop()
-                self.context.rm()
-                self.context.executor.commit()
+            logger.warning('Recreate with updated context')
+            self.context.recreate(args)
+            return
 
-        if self.ensure_running_state(expected=False):
-            self.context.executor.append([
-                ('docker', 'run'),
-                opts,
-                ('-l', '='.join([_DS_SIGN_LABEL, signature])),
-                ('--name', self.context.container_name),
-                self.context.image_name,
-                args,
-            ])
+        if self.inspect_data.is_running:
+            logger.warning('Container is working')
+
+        else:
+            if self.inspect_data.is_present:
+                if self.context.detach:
+                    self.context.executor.append([
+                        ('docker', 'start'),
+                        self.inspect_data.container_id,
+                    ])
+                else:
+                    logger.warning('Recreate because the container presents and is not working')
+                    self.context.recreate(args)
+                    return
+
+            else:
+                self.context.executor.append([
+                    ('docker', 'run'),
+                    opts,
+                    ('-l', '='.join([_DS_SIGN_LABEL, signature])),
+                    ('--name', self.context.container_name),
+                    self.context.image_name,
+                    args,
+                ])
 
         if self.context.detach:
             self.context.on_startup()
@@ -291,6 +328,7 @@ class Recreate(DockerCommand):
     def invoke_with_args(self, args):
         if self.inspect_data.is_running:
             self.context.stop()
+        if self.inspect_data.is_present:
             self.context.rm()
         self.context.start(args)
 
@@ -338,7 +376,7 @@ class Inspect(DockerCommand):
     consume_all_args = True
 
     def invoke_with_args(self, args):
-        if not self.ensure_running_state():
+        if not self.ensure_present():
             return
         self.context.executor.append([
             ('docker', 'inspect'),

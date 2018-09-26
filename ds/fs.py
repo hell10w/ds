@@ -89,6 +89,6 @@ def get_modules(path):
 
 def find_contexts():
     result = []
-    for path in additional_import():
+    for path in existing_additional_import():
         result += get_modules(path)
     return result

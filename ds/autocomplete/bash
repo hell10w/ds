@@ -67,7 +67,7 @@ __ds () {
 
   case $prev in
     -c)
-      contexts=$(ds _all_contexts 2>/dev/null)
+      contexts=$(ds -c dsjk list-contexts 2>/dev/null)
       __ds_debug "complete for context"
       __ds_debug "context variants: ${contexts}"
       COMPREPLY=( $(compgen -W "${contexts}" -- ${cur}) )
@@ -75,7 +75,7 @@ __ds () {
       ;;
   esac
 
-  commands=$(ds -c ${context} _all_commands 2>/dev/null)
+  commands=$(ds -c ${context} list-commands 2>/dev/null)
 
   complete="${opts[*]} ${commands}"
   commands=($commands)
@@ -95,4 +95,3 @@ __ds () {
 }
 
 complete -F __ds ds
-

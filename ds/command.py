@@ -61,6 +61,8 @@ class HiddenCommand(Command):
 
 
 class ListCommands(HiddenCommand):
+    short_help = 'List all commands in context'
+
     def invoke_with_args(self, args):
         print(' '.join(self.context.commands.keys()))
 
