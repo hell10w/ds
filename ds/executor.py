@@ -71,3 +71,6 @@ class Executor(object):
         if not multi:
             return result[0]
         return result
+
+    def yesno(self, prompt):
+        return self.fzf(['no', 'yes'], prompt=prompt) == 'yes'

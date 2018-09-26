@@ -1,7 +1,11 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
+from os.path import join
+from os.path import exists
 from logging import getLogger
+from shutil import copyfile
+import os
 
 from ds import context
 from ds import fs
@@ -23,7 +27,7 @@ class ListContexts(Command):
     short_help = 'Show all posible context modules'
 
     def invoke_with_args(self, args):
-        print(' '.join(fs.find_contexts()))
+        print(' '.join([item[0] for item in fs.find_contexts()]))
 
 
 class InstallAutocomplete(Command):
@@ -33,7 +37,7 @@ class InstallAutocomplete(Command):
     def invoke_with_args(self, args):
         shell = args['<shell>'] or 'bash'
         script = fs.relative('autocomplete', shell)
-        if not fs.exists(script):
+        if not exists(script):
             logger.error('Unknown shell: %s', shell)
             return
         print()
@@ -46,18 +50,24 @@ class OverridePreset(Command):
     usage = 'usage: {name} [<preset>]'
 
     def invoke_with_args(self, args):
-        variants = fs.find_contexts()
-        context = self.context.executor.\
+        variants = [
+            ' '.join(item)
+            for item in fs.find_contexts()
+        ]
+        preset = self.context.executor.\
             fzf(variants, prompt='Preset')
-        if not context:
+        if not preset:
             return
+        src, src_path = preset.split(' ', 1)
 
-        variants = ['default', context]
+        variants = ['default', src]
         if set(variants) == 1:
-            new_context = context
+            dst = src
         else:
-            new_context = self.context.executor.\
+            dst = self.context.executor.\
                 fzf(variants, prompt='New context')
+            if not dst:
+                return
 
         additional_import = fs.additional_import()
         existing_additional_import = fs.existing_additional_import()
@@ -68,10 +78,27 @@ class OverridePreset(Command):
             if path not in existing_additional_import
         ]
 
-        paths = self.context.executor.\
+        dst_path = self.context.executor.\
             fzf(variants, prompt='Install path', no_sort=True)
-        if not paths:
+        if not dst_path:
             return
 
-        from pprint import pprint
-        pprint([context, new_context, paths])
+        if not exists(dst_path):
+            os.makedirs(dst_path)
+
+        src = join(src_path, src) + '.py'
+        dst = join(dst_path, dst) + '.py'
+
+        if exists(dst):
+            confirm = 'File "{}" already exists. Override?'.format(dst)
+            if not self.context.executor.yesno(confirm):
+                return
+
+        copyfile(src, dst)
+        logger.info('New context copied to "%s"', dst)
+
+        editor = os.environ.get('EDITOR')
+        if not editor:
+            return
+
+        self.context.executor.append((editor, dst, ))
