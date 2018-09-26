@@ -17,9 +17,9 @@ logger = getLogger(__name__)
 class Context(context.Context):
     def get_all_commands(self):
         return super(Context, self).get_all_commands() + [
-            OverridePreset,
             InstallAutocomplete,
             ListContexts,
+            OverridePreset,
         ]
 
 
