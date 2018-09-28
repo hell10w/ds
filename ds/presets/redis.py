@@ -18,14 +18,10 @@ class Context(ForeignContext, PersistentContext, RedisContext, PullContext):
 
 
 class Cli(Exec):
-    short_help = '`redis-cli`'
-
     def get_command_args(self):
         return 'redis-cli',
 
 
 class Info(Exec):
-    short_help = '`redis-cli info`'
-
     def get_command_args(self):
         return 'redis-cli', 'info',

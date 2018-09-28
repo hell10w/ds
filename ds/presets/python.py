@@ -17,7 +17,6 @@ class Context(PythonContext, PullContext):
 
 
 class Pip(Exec):
-    short_help = '`pip`'
     user = 0
 
     def get_command_args(self):
@@ -25,7 +24,5 @@ class Pip(Exec):
 
 
 class PipFreeze(Exec):
-    short_help = '`pip freeze`'
-
     def get_command_args(self):
         return 'pip', 'freeze',

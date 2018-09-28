@@ -428,11 +428,17 @@ class Logs(DockerCommand):
 
 
 class Exec(DockerCommand):
-    short_help = 'Run a command in a container'
     usage = 'usage: {name} <args>...'
     consume_all_args = True
 
     user = None
+
+    @property
+    def short_help(self):
+        args = self.get_command_args()
+        if args:
+            return '`{}`'.format(' '.join(args))
+        return 'Run a command in a container'
 
     def invoke_with_args(self, args):
         if not self.ensure_running_state():

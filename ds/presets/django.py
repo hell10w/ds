@@ -14,28 +14,20 @@ class DjangoContext(DockerContext):
 
 
 class Manage(Exec):
-    short_help = '`./manage.py`'
-
     def get_command_args(self):
         return './manage.py',
 
 
 class ShellPlus(Exec):
-    short_help = '`./manage.py shell_plus`'
-
     def get_command_args(self):
         return './manage.py', 'shell_plus',
 
 
 class Migrate(Exec):
-    short_help = '`./manage.py migrate`'
-
     def get_command_args(self):
         return './manage.py', 'migrate',
 
 
 class MakeMigrations(Exec):
-    short_help = '`./manage.py makemigrations`'
-
     def get_command_args(self):
         return './manage.py', 'makemigrations',
