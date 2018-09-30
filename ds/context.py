@@ -84,6 +84,7 @@ class Context(BaseContext):
         return super(Context, self).get_all_commands() + [
             command.ListCommands,
             command.ShowContext,
+            command.EditContext,
         ]
 
     def get_project_root(self):

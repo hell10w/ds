@@ -1,12 +1,17 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from weakref import ref
+from logging import getLogger
+import os
+from inspect import getmodule, getsourcefile
 
 from docopt import docopt
 from six import with_metaclass
 
 from ds import fs
 from ds import text
+
+logger = getLogger(__name__)
 
 
 class CommandMeta(type):
@@ -66,7 +71,7 @@ class ListCommands(HiddenCommand):
         print(' '.join(self.context.commands.keys()))
 
 
-class ShowContext(Command):
+class ShowContext(HiddenCommand):
     short_help = 'Show a context info'
 
     def invoke_with_args(self, args):
@@ -83,3 +88,16 @@ class ShowContext(Command):
         ]))
 
         text.pretty_print_object(self.context)
+
+
+class EditContext(HiddenCommand):
+    short_help = 'Edit a context with $EDITOR'
+
+    def invoke_with_args(self, args):
+        context_class = self.context.__class__
+        filename = getsourcefile(getmodule(self.context))
+        editor = os.environ.get('EDITOR')
+        if not editor:
+            logger.error('$EDITOR is not defined')
+            return
+        self.context.executor.append((editor, filename, ))
