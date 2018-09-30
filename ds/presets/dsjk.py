@@ -13,6 +13,11 @@ from ds.command import Command
 
 logger = getLogger(__name__)
 
+BASHRC = """
+dscomplete={path}
+[ -f $dscomplete ] && source $dscomplete
+"""
+
 
 class Context(context.Context):
     def get_all_commands(self):
@@ -40,9 +45,8 @@ class InstallAutocomplete(Command):
         if not exists(script):
             logger.error('Unknown shell: %s', shell)
             return
-        print()
-        print('source', script)
-        print()
+        print('Add to .bashrc:')
+        print(BASHRC.format(path=script))
 
 
 class OverridePreset(Command):
