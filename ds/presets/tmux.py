@@ -1,10 +1,13 @@
-from base_tmux import TmuxSessionContext
-from base_tmux import w, vs, hs
+# pylint: disable=unused-import
+from base_tmux import hs
 from base_tmux import LAYOUT_EVEN_HORIZONTAL
 from base_tmux import LAYOUT_EVEN_VERTICAL
 from base_tmux import LAYOUT_MAIN_HORIZONTAL
 from base_tmux import LAYOUT_MAIN_VERTICAL
 from base_tmux import LAYOUT_TILED
+from base_tmux import TmuxSessionContext
+from base_tmux import vs
+from base_tmux import w
 
 
 class Context(TmuxSessionContext):

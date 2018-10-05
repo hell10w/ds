@@ -1,7 +1,7 @@
 import sys
-from logging import getLogger
 from collections import namedtuple
 from functools import partial
+from logging import getLogger
 
 import six
 try:
@@ -42,10 +42,11 @@ class SchemaRealizer(object):
         temporary.kill_window()
 
     def realize_window(self, session, window_schema, index):
-        window = session.new_window(window_name=window_schema.name,
-                                    start_directory=window_schema.path,
-                                    window_index=index,
-                                    attach=index == 0)
+        window = session.new_window(
+            window_name=window_schema.name,
+            start_directory=window_schema.path,
+            window_index=index,
+            attach=index == 0)
 
         for option, value in window_schema.opts.items():
             window.set_window_option(option, value)
@@ -67,8 +68,8 @@ class SchemaRealizer(object):
                 pane.send_keys(item)
 
     def realize_split(self, previous, split_schema):
-        pane = previous.split_window(start_directory=split_schema.path,
-                                     vertical=split_schema.vertical)
+        pane = previous.split_window(
+            start_directory=split_schema.path, vertical=split_schema.vertical)
 
         if split_schema.width is not None:
             pane.set_width(split_schema.width)
@@ -102,9 +103,10 @@ class TmuxSessionContext(context.Context):
     def get_all_commands(self):
         return super(TmuxSessionContext, self).get_all_commands() + [
             Status,
-            Attach,
             Up,
             Kill,
+            Attach,
+            Inspect,
         ]
 
 
@@ -130,17 +132,24 @@ class Window(_CollectByCall):
         self.layout = layout
         self.opts = opts or {}
 
+
 w = Window
 
 
 class Split(_CollectByCall):
-    def __init__(self, path=None, width=None, height=None, vertical=True, **kwargs):
+    def __init__(self,
+                 path=None,
+                 width=None,
+                 height=None,
+                 vertical=True,
+                 **kwargs):
         super(Split, self).__init__()
         self.kwargs = kwargs
         self.path = path
         self.width = width
         self.height = height
         self.vertical = vertical
+
 
 s = Split
 vs = Split
@@ -156,11 +165,14 @@ class TmuxCommand(Command):
             setattr(self.context, '_tmux_server', server)
         return server
 
+    def find_session_by_name(self, name):
+        return self.server.find_where({
+            'session_name': name,
+        })
+
     @property
     def session(self):
-        return self.server.find_where({
-            'session_name': self.context.session_name,
-        })
+        return find_session(self.context.session_name)
 
     def ensure_session_exists(self, expected=True):
         if bool(self.session) ^ expected:
@@ -209,3 +221,27 @@ class Attach(TmuxCommand):
         if not self.ensure_session_exists():
             return
         self.session.attach_session()
+
+
+class Inspect(TmuxCommand):
+    usage = 'usage: {name} <session>'
+    short_help = 'Inspect session'
+
+    template_window = 'w(name=\'{name}\', path=\'{path}\')(),'
+
+    def invoke_with_args(self, args):
+        session_name = args['<session>']
+        session = self.find_session_by_name(session_name)
+
+        for window in session.list_windows():
+            first_pane = window.list_panes()[0]
+
+            name = window.get('window_name') or ''
+            name = name.replace('\'', '\\\'')
+
+            path = first_pane.get('pane_current_path')
+            path = path.replace('\'', '\\\'')
+
+            item = self.template_window.format(name=name, path=path)
+            for line in item.splitlines():
+                print('{}{}'.format(' ' * 4, line))

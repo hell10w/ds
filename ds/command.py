@@ -1,9 +1,11 @@
 from __future__ import print_function
 from __future__ import unicode_literals
-from weakref import ref
-from logging import getLogger
+
 import os
-from inspect import getmodule, getsourcefile
+from inspect import getmodule
+from inspect import getsourcefile
+from logging import getLogger
+from weakref import ref
 
 from docopt import docopt
 from six import with_metaclass
@@ -100,4 +102,7 @@ class EditContext(HiddenCommand):
         if not editor:
             logger.error('$EDITOR is not defined')
             return
-        self.context.executor.append((editor, filename, ))
+        self.context.executor.append((
+            editor,
+            filename,
+        ))

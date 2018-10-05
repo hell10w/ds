@@ -248,16 +248,19 @@ class _Start(DockerCommand):
 
     def invoke_with_args(self, args):
         if args and self.context.detach:
-            logger.error('`detach` is enabled. Arguments for `start` is not allowed in this case.')
+            logger.error(
+                '`detach` is enabled. Arguments for `start` is not allowed in this case.'
+            )
             return
 
         opts = self._collect_opts()
         signature = text.signature(list(opts) + list(args))
 
-        logger.debug('Previous signature is %s, current is %s', self.current_signature, signature)
+        logger.debug('Previous signature is %s, current is %s',
+                     self.current_signature, signature)
 
         changed = self.inspect_data.is_present and \
-                  self.current_signature != signature
+            self.current_signature != signature
         if changed:
             logger.warning('Recreate with updated context')
             self.context.recreate(args)
@@ -274,7 +277,9 @@ class _Start(DockerCommand):
                         self.inspect_data.container_id,
                     ])
                 else:
-                    logger.warning('Recreate because the container presents and is not working')
+                    logger.warning(
+                        'Recreate because the container presents and is not working'
+                    )
                     self.context.recreate(args)
                     return
 

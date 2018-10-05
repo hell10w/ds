@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+
 from collections import namedtuple
 from logging import getLogger
 from os import execvp
@@ -35,8 +36,11 @@ class Executor(object):
         skip_stderr = opts.get('skip_stderr', False)
         input_ = opts.get('input', None)
 
-        process = Popen(args, stdin=PIPE, stdout=PIPE,
-                        stderr=None if skip_stderr else PIPE)
+        process = Popen(
+            args,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=None if skip_stderr else PIPE)
         stdout, stderr = process.communicate(input_)
         return ExecResult(process.returncode, stdout, stderr)
 

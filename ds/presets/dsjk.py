@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import absolute_import
-from os.path import join
-from os.path import exists
-from logging import getLogger
-from shutil import copyfile
+
 import os
+from logging import getLogger
+from os.path import exists
+from os.path import join
+from shutil import copyfile
 
 from ds import context
 from ds import fs
@@ -54,10 +55,7 @@ class OverridePreset(Command):
     usage = 'usage: {name} [<preset>]'
 
     def invoke_with_args(self, args):
-        variants = [
-            ' '.join(item)
-            for item in fs.find_contexts()
-        ]
+        variants = [' '.join(item) for item in fs.find_contexts()]
         preset = self.context.executor.\
             fzf(variants, prompt='Preset')
         if not preset:
@@ -77,8 +75,7 @@ class OverridePreset(Command):
         existing_additional_import = fs.existing_additional_import()
 
         variants = existing_additional_import + [
-            path
-            for path in additional_import
+            path for path in additional_import
             if path not in existing_additional_import
         ]
 
@@ -105,4 +102,7 @@ class OverridePreset(Command):
         if not editor:
             return
 
-        self.context.executor.append((editor, dst, ))
+        self.context.executor.append((
+            editor,
+            dst,
+        ))
