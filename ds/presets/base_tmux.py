@@ -172,7 +172,7 @@ class TmuxCommand(Command):
 
     @property
     def session(self):
-        return find_session(self.context.session_name)
+        return self.find_session_by_name(self.context.session_name)
 
     def ensure_session_exists(self, expected=True):
         if bool(self.session) ^ expected:
@@ -230,18 +230,24 @@ class Inspect(TmuxCommand):
     template_window = 'w(name=\'{name}\', path=\'{path}\')(),'
 
     def invoke_with_args(self, args):
+        escape = lambda value: value.replace('\'', '\\\'')
+
         session_name = args['<session>']
         session = self.find_session_by_name(session_name)
+        assert session, 'Session not found'
+
+        print('session_name = \'{}\''.format(escape(session_name)))
 
         for window in session.list_windows():
             first_pane = window.list_panes()[0]
 
             name = window.get('window_name') or ''
-            name = name.replace('\'', '\\\'')
+            name = name
 
             path = first_pane.get('pane_current_path')
             path = path.replace('\'', '\\\'')
 
-            item = self.template_window.format(name=name, path=path)
+            item = self.template_window.format(name=escape(name),
+                                               path=escape(path))
             for line in item.splitlines():
-                print('{}{}'.format(' ' * 4, line))
+                print(line)
