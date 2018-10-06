@@ -87,18 +87,22 @@ class DockerContext(Naming, context.Context):
     def uid(self):
         return os.getuid()
 
-    @property
-    def gid(self):
-        return os.getgid()
+    #  @property
+    #  def gid(self):
+    #      return None  #  os.getgid()
 
     def get_mounts(self):
-        result = [
-            HomeMount('.bashrc'),
-            HomeMount('.inputrc'),
-            HomeMount('.config/bash'),
-            HomeMount('.psqlrc'),
-            HomeMount('.liquidpromptrc'),
-        ]
+        result = []
+        for dest in text.safe_list(self.home):
+            if not dest:
+                continue
+            result.extend([
+                HomeMount('.bashrc', dest),
+                HomeMount('.inputrc', dest),
+                HomeMount('.config/bash', dest),
+                HomeMount('.psqlrc', dest),
+                HomeMount('.liquidpromptrc', dest),
+            ])
         if self.mount_project_root:
             dest = self.working_dir or '/project/'
             result.append(Mount(self.project_root, dest))
@@ -129,17 +133,11 @@ class Mount(object):
 
 
 class HomeMount(Mount):
-    def __init__(self, src, mode='ro'):
-        self.src = src
-        self.mode = mode
-
     def __call__(self, context):
-        if not context.home:
-            return
         src = expanduser(join('~', self.src))
         if not exists(src):
             return
-        dest = join(context.home, self.src)
+        dest = join(self.dest, self.src)
         return (src, dest, self.mode)
 
 
@@ -227,7 +225,7 @@ class _Start(DockerCommand):
             '-d' if self.context.detach else (),
             '--rm' if self.context.remove_on_stop else (),
             [('--network', network) for network in self.context.networks],
-            ('-u', '{}:{}'.format(self.context.uid, self.context.gid))
+            ('-u', '{}'.format(self.context.uid))
             if self.context.uid is not None else (),
             [('-e', '='.join([key, value]))
              for key, value in self.context.environment.items()],
@@ -267,7 +265,7 @@ class _Start(DockerCommand):
                 if self.context.detach:
                     self.context.executor.append([
                         ('docker', 'start'),
-                        self.inspect_data.container_id,
+                        self.context.container_name,
                     ])
                 else:
                     logger.warning(

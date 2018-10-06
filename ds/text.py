@@ -113,3 +113,9 @@ def append_value(dest, key, value):
     if value is None:
         return
     dest[key] = value
+
+
+def safe_list(values):
+    if not isinstance(values, (set, tuple, list)):
+        values = (values, )
+    return values
