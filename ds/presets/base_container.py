@@ -118,17 +118,6 @@ class DockerContext(Naming, context.Context):
         self.logs()
 
 
-class ForeignContext(DockerContext):
-    mount_project_root = False
-    working_dir = None
-    uid = None
-
-
-class PersistentContext(DockerContext):
-    detach = True
-    remove_on_stop = False
-
-
 class Mount(object):
     def __init__(self, src, dest, mode='rw'):
         self.src = src

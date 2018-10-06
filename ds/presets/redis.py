@@ -1,7 +1,5 @@
 from base_container import DockerContext
 from base_container import Exec
-from base_container import ForeignContext
-from base_container import PersistentContext
 from base_pull import Context as PullContext
 
 
@@ -17,8 +15,15 @@ class RedisContext(DockerContext):
         ]
 
 
-class Context(RedisContext, ForeignContext, PersistentContext, PullContext):
+class Context(RedisContext, PullContext):
     default_image = 'redis'
+
+    detach = True
+    remove_on_stop = False
+
+    mount_project_root = False
+    working_dir = None
+    uid = None
 
 
 class Cli(Exec):

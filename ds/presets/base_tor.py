@@ -1,15 +1,20 @@
 from ds import text
 from ds.command import Command
-from base_container import ForeignContext
-from base_container import PersistentContext
 from base_container import Exec
 from base_pull import Context as PullContext
 
 
-class TorContext(PullContext, ForeignContext, PersistentContext):
+class TorContext(PullContext):
     """
     https://hub.docker.com/r/dperson/torproxy/
     """
+
+    detach = True
+    remove_on_stop = False
+
+    mount_project_root = False
+    working_dir = None
+    uid = None
 
     default_image = 'dperson/torproxy'
     container_name = 'tor'

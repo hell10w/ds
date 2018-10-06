@@ -1,8 +1,6 @@
 from ds import text
 from base_container import DockerContext
 from base_container import Exec
-from base_container import ForeignContext
-from base_container import PersistentContext
 from base_pull import Context as PullContext
 
 
@@ -19,6 +17,8 @@ class PostgresContext(DockerContext):
     def get_all_commands(self):
         return super(PostgresContext, self).get_all_commands() + [
             Psql,
+            Pg_dump,
+            Pg_restore,
         ]
 
     @property
@@ -33,10 +33,26 @@ class PostgresContext(DockerContext):
         return self.pg_user or 'postgres'
 
 
-class Context(PostgresContext, ForeignContext, PersistentContext, PullContext):
+class Context(PostgresContext, PullContext):
     default_image = 'postgres'
+
+    detach = True
+    remove_on_stop = False
+
+    mount_project_root = False
+    working_dir = None
 
 
 class Psql(Exec):
     def get_command_args(self):
         return 'psql',
+
+
+class Pg_dump(Exec):
+    def get_command_args(self):
+        return 'pg_dump',
+
+
+class Pg_restore(Exec):
+    def get_command_args(self):
+        return 'pg_restore',

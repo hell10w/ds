@@ -62,19 +62,17 @@ class Command(BaseCommand):
         return self.invoke(*args, **kwargs)
 
 
-class HiddenCommand(Command):
-    hidden = True
-
-
-class ListCommands(HiddenCommand):
+class ListCommands(Command):
     short_help = 'List all commands in context (autocomplete helper)'
+    hidden = True
 
     def invoke_with_args(self, args):
         print(' '.join(self.context.commands.keys()))
 
 
-class ShowContext(HiddenCommand):
+class ShowContext(Command):
     short_help = 'Show a context info (autocomplete helper)'
+    hidden = True
 
     def invoke_with_args(self, args):
         context_class = self.context.__class__
@@ -92,8 +90,9 @@ class ShowContext(HiddenCommand):
         text.pretty_print_object(self.context)
 
 
-class EditContext(HiddenCommand):
+class EditContext(Command):
     short_help = 'Edit a context with $EDITOR'
+    hidden = True
 
     def invoke_with_args(self, args):
         context_class = self.context.__class__
