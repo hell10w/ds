@@ -53,6 +53,8 @@ class DockerContext(Naming, context.Context):
     detach = False
     detach_keys = 'ctrl-c'
 
+    restart = 'no'
+
     logs_tail = 100
 
     shell = '/bin/bash'
@@ -244,6 +246,8 @@ class _Start(DockerCommand):
              for mountpoint in self.context.mounts],
             ('-w', self.context.working_dir)
             if self.context.working_dir else (),
+            ('--restart', self.context.restart)
+            if self.context.restart else (),
         )
 
     def invoke_with_args(self, args):
@@ -321,7 +325,7 @@ class Stop(_Stop):
     hidden = True
 
 
-class Down(Stop):
+class Down(_Stop):
     pass
 
 

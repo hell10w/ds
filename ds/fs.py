@@ -7,6 +7,7 @@ from os.path import expanduser
 from os.path import isdir
 from os.path import join
 from os.path import realpath
+from collections import OrderedDict
 
 from ds.decorators import cached_func
 
@@ -63,7 +64,9 @@ def get_project_name():
 
 @cached_func
 def additional_import():
-    result = {join(item, HIDDEN_PREFIX): None for item in walk_top()}
+    result = OrderedDict()
+    for item in walk_top():
+        result[join(item, HIDDEN_PREFIX)] = None
     result[users_home()] = None
     result[relative('presets')] = None
     return list(result.keys())

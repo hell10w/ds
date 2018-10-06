@@ -1,5 +1,5 @@
-from os.path import exists
 from logging import getLogger
+from os.path import exists
 
 from base_container import DockerCommand
 from base_container import DockerContext

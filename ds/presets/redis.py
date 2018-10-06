@@ -6,6 +6,10 @@ from base_pull import Context as PullContext
 
 
 class RedisContext(DockerContext):
+    """
+    https://hub.docker.com/_/redis/
+    """
+
     def get_all_commands(self):
         return super(RedisContext, self).get_all_commands() + [
             Cli,
@@ -13,7 +17,7 @@ class RedisContext(DockerContext):
         ]
 
 
-class Context(ForeignContext, PersistentContext, RedisContext, PullContext):
+class Context(RedisContext, ForeignContext, PersistentContext, PullContext):
     default_image = 'redis'
 
 

@@ -230,7 +230,8 @@ class Inspect(TmuxCommand):
     template_window = 'w(name=\'{name}\', path=\'{path}\')(),'
 
     def invoke_with_args(self, args):
-        escape = lambda value: value.replace('\'', '\\\'')
+        def escape(value):
+            return value.replace('\'', '\\\'')
 
         session_name = args['<session>']
         session = self.find_session_by_name(session_name)
@@ -247,7 +248,7 @@ class Inspect(TmuxCommand):
             path = first_pane.get('pane_current_path')
             path = path.replace('\'', '\\\'')
 
-            item = self.template_window.format(name=escape(name),
-                                               path=escape(path))
+            item = self.template_window.format(
+                name=escape(name), path=escape(path))
             for line in item.splitlines():
                 print(line)

@@ -107,3 +107,9 @@ def sanitize_text(value, allowed=None, rep='--'):
     allowed = allowed or (ascii_lowercase + digits)
     return ''.join(
         [alpha if alpha in allowed else rep for alpha in value.lower()])
+
+
+def append_value(dest, key, value):
+    if value is None:
+        return
+    dest[key] = value
