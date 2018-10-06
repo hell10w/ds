@@ -21,6 +21,8 @@ class RedisContext(DockerContext):
 class Context(RedisContext, PullContext):
     default_image = 'redis'
 
+    home = '/root/'
+
     detach = True
     remove_on_stop = False
 
@@ -29,8 +31,6 @@ class Context(RedisContext, PullContext):
     uid = None
 
     restart = 'always'
-
-    data_mount = None
 
     def get_mounts(self):
         result = super(RedisContext, self).get_mounts()

@@ -8,6 +8,8 @@ from os.path import exists
 from os.path import join
 from shutil import copyfile
 
+from six.moves import input
+
 from ds import context
 from ds import fs
 from ds.command import Command
@@ -54,6 +56,9 @@ class OverridePreset(Command):
     short_help = 'Copy a preset to one of local directories'
     usage = 'usage: {name} [<preset>]'
 
+    default_option = 'default'
+    other_option = '(other)'
+
     def invoke_with_args(self, args):
         variants = [' '.join(item) for item in fs.find_contexts()]
         preset = self.context.executor.\
@@ -62,14 +67,20 @@ class OverridePreset(Command):
             return
         src, src_path = preset.split(' ', 1)
 
-        variants = ['default', src]
-        if set(variants) == 1:
-            dst = src
-        else:
-            dst = self.context.executor.\
-                fzf(variants, prompt='New context')
-            if not dst:
-                return
+        variants = [self.other_option, self.default_option]
+        if src != self.default_option:
+            variants.append(src)
+        dst = self.context.executor.\
+            fzf(variants, prompt='New context')
+        if not dst:
+            return
+        if dst == self.other_option:
+            try:
+                dst = input('New context name: ')
+            except EOFError:
+                dst = None
+        if not dst:
+            return
 
         additional_import = fs.additional_import()
         existing_additional_import = fs.existing_additional_import()
