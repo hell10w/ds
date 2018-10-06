@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import os
 from collections import namedtuple
 from logging import getLogger
 from os import execvp
@@ -78,3 +79,10 @@ class Executor(object):
 
     def yesno(self, prompt):
         return self.fzf(['no', 'yes'], prompt=prompt) == 'yes'
+
+    def edit_file(self, filename):
+        editor = os.environ.get('EDITOR')
+        if not editor:
+            logger.error('$EDITOR is not defined')
+            return
+        self.append([editor, filename])

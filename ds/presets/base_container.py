@@ -45,7 +45,7 @@ class ProjectPrefixedNaming(PrefixedNaming):
 
 class DockerContext(Naming, context.Context):
     mount_project_root = True
-    working_dir = '/app/'
+    working_dir = '/work/'
     home = '/'
 
     remove_on_stop = True
@@ -57,7 +57,7 @@ class DockerContext(Naming, context.Context):
 
     shell = '/bin/bash'
 
-    networks = 'host',
+    networks = ()
 
     environment = {}
 

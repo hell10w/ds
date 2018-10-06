@@ -67,14 +67,14 @@ class HiddenCommand(Command):
 
 
 class ListCommands(HiddenCommand):
-    short_help = 'List all commands in context'
+    short_help = 'List all commands in context (autocomplete helper)'
 
     def invoke_with_args(self, args):
         print(' '.join(self.context.commands.keys()))
 
 
 class ShowContext(HiddenCommand):
-    short_help = 'Show a context info'
+    short_help = 'Show a context info (autocomplete helper)'
 
     def invoke_with_args(self, args):
         context_class = self.context.__class__
@@ -98,11 +98,4 @@ class EditContext(HiddenCommand):
     def invoke_with_args(self, args):
         context_class = self.context.__class__
         filename = getsourcefile(getmodule(self.context))
-        editor = os.environ.get('EDITOR')
-        if not editor:
-            logger.error('$EDITOR is not defined')
-            return
-        self.context.executor.append((
-            editor,
-            filename,
-        ))
+        self.context.executor.edit_file(filename)

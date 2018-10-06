@@ -98,11 +98,4 @@ class OverridePreset(Command):
         copyfile(src, dst)
         logger.info('New context copied to "%s"', dst)
 
-        editor = os.environ.get('EDITOR')
-        if not editor:
-            return
-
-        self.context.executor.append((
-            editor,
-            dst,
-        ))
+        self.context.executor.edit_file(dst)
