@@ -132,7 +132,15 @@ class Mount(object):
         return (self.src, self.dest, self.mode)
 
 
-class HomeMount(Mount):
+class ReadonlyMount(Mount):
+    def __init__(self, src, dest, mode='ro'):
+        super(ReadonlyMount, self).__init__(src, dest, mode)
+
+
+class HomeMount(ReadonlyMount):
+    def __init__(self, src, dest, mode='ro'):
+        super(HomeMount, self).__init__(src, dest, mode)
+
     def __call__(self, context):
         src = expanduser(join('~', self.src))
         if not exists(src):

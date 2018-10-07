@@ -3,7 +3,7 @@ from os.path import join
 from ds import text
 from base_container import DockerContext
 from base_container import Exec
-from base_container import Mount
+from base_container import Mount, ReadonlyMount
 from base_pull import Context as PullContext
 
 
@@ -17,6 +17,8 @@ class PostgresContext(DockerContext):
     pg_user = 'postgres'
     pg_password = pg_user
     pgdata = '/var/lib/postgresql/data/'
+
+    initdb_path = None
 
     def get_all_commands(self):
         return super(PostgresContext, self).get_all_commands() + [
@@ -37,6 +39,8 @@ class PostgresContext(DockerContext):
         result = super(PostgresContext, self).get_mounts()
         if self.data_mount:
             result.append(Mount(self.data_mount, self.pgdata))
+        if self.initdb_path:
+            result.append(ReadonlyMount(self.initdb_path, '/docker-entrypoint-initdb.d'))
         return result
 
     @property
