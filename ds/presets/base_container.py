@@ -446,7 +446,9 @@ class Exec(DockerCommand):
 
     def invoke_with_args(self, args):
         if not self.ensure_running_state():
-            return
+            args = list(self.get_command_args()) + list(args)
+            return self.context.start(args)
+
         args = list(self.get_command_args()) + list(args)
         assert args, 'No arguments for exec'
         self.context.executor.append([

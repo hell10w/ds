@@ -117,5 +117,5 @@ def append_value(dest, key, value):
 
 def safe_list(values):
     if not isinstance(values, (set, tuple, list)):
-        values = (values, )
+        values = [values]
     return values
