@@ -96,7 +96,7 @@ class EditContext(Command):
         self.context.executor.edit_file(self.context.source_file)
 
 
-class Repl(Command):
+class DsRepl(Command):
     hidden = True
 
     def invoke_with_args(self, args):

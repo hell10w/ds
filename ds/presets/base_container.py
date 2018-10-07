@@ -44,6 +44,9 @@ class ProjectPrefixedNaming(PrefixedNaming):
 
 
 class DockerContext(Naming, context.Context):
+    cmd = None
+    entrypoint = None
+
     mount_project_root = True
     working_dir = '/work/'
     home = '/'
@@ -118,7 +121,10 @@ class DockerContext(Naming, context.Context):
             result.append(realized)
         return result
 
-    def on_startup(self):
+    def before_start(self):
+        self.logs()
+
+    def after_start(self):
         self.logs()
 
 
@@ -246,11 +252,18 @@ class _Start(DockerCommand):
         )
 
     def invoke_with_args(self, args):
+        self.context.before_start()
+
         if args and self.context.detach:
             logger.error(
                 '`detach` is enabled. Arguments for `start` is not allowed in this case.'
             )
             return
+
+        args = (
+            self.context.entrypoint if self.context.entrypoint else (),
+            args or self.context.cmd or (),
+        )
 
         opts = self._collect_opts()
         signature = text.signature(list(opts) + list(args))
@@ -293,7 +306,7 @@ class _Start(DockerCommand):
                 ])
 
         if self.context.detach:
-            self.context.on_startup()
+            self.context.after_start()
 
 
 class Start(_Start):
@@ -445,7 +458,7 @@ class Exec(DockerCommand):
         return 'Run a command in a container'
 
     def invoke_with_args(self, args):
-        if not self.ensure_running_state():
+        if not self.inspect_data.is_running:
             args = list(self.get_command_args()) + list(args)
             return self.context.start(args)
 

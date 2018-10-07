@@ -6,10 +6,13 @@ from ds import text
 
 
 class ClojureContext(DockerContext):
+    cmd = 'lein', 'repl',
+
     def get_all_commands(self):
         return super(ClojureContext, self).get_all_commands() + [
-            Lein,
             CreateNewApp,
+            Lein,
+            Repl,
         ]
 
     @property
@@ -33,6 +36,11 @@ class Context(ClojureContext, PullContext):
 class Lein(Exec):
     def get_command_args(self):
         return 'lein',
+
+
+class Repl(Exec):
+    def get_command_args(self):
+        return 'lein', 'repl',
 
 
 class CreateNewApp(Exec):

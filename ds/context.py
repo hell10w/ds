@@ -96,7 +96,7 @@ class Context(BaseContext):
             command.ListCommands,
             command.ShowContext,
             command.EditContext,
-            command.Repl,
+            command.DsRepl,
         ]
 
     def get_project_root(self):
