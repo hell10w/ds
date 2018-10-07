@@ -1,5 +1,7 @@
 from collections import OrderedDict
 from logging import getLogger
+from inspect import getmodule
+from inspect import getsourcefile
 
 from ds import command
 from ds import executor
@@ -78,6 +80,15 @@ class BaseContext(object):
                 return command
             raise
 
+    @property
+    def source_file(self):
+        return getsourcefile(getmodule(self))
+
+    @property
+    def repl_class(self):
+        from ds.repl import Repl
+        return Repl
+
 
 class Context(BaseContext):
     def get_all_commands(self):
@@ -85,6 +96,7 @@ class Context(BaseContext):
             command.ListCommands,
             command.ShowContext,
             command.EditContext,
+            command.Repl,
         ]
 
     def get_project_root(self):

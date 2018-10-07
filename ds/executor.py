@@ -34,13 +34,15 @@ class Executor(object):
         if self._simulate:
             return ExecResult(0, '', '')
 
+        skip_stdout = opts.get('skip_stdout', False)
+        skip_stdin = opts.get('skip_stdin', False)
         skip_stderr = opts.get('skip_stderr', False)
         input_ = opts.get('input', None)
 
         process = Popen(
             args,
-            stdin=PIPE,
-            stdout=PIPE,
+            stdin=None if skip_stderr else PIPE,
+            stdout=None if skip_stdout else PIPE,
             stderr=None if skip_stderr else PIPE)
         stdout, stderr = process.communicate(input_)
         return ExecResult(process.returncode, stdout, stderr)

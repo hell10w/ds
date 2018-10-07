@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'six',
         'docopt',
+        'prompt_toolkit',
     ],
     test_suite='tests',
     include_package_data=True,

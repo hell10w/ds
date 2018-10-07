@@ -2,8 +2,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-from inspect import getmodule
-from inspect import getsourcefile
 from logging import getLogger
 from weakref import ref
 
@@ -95,6 +93,11 @@ class EditContext(Command):
     hidden = True
 
     def invoke_with_args(self, args):
-        context_class = self.context.__class__
-        filename = getsourcefile(getmodule(self.context))
-        self.context.executor.edit_file(filename)
+        self.context.executor.edit_file(self.context.source_file)
+
+
+class Repl(Command):
+    hidden = True
+
+    def invoke_with_args(self, args):
+        self.context.repl_class(self.context)(args)
