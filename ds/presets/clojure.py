@@ -1,3 +1,5 @@
+import os
+
 from base_container import DockerContext
 from base_container import Exec
 from base_container import Mount
@@ -7,10 +9,11 @@ from ds import text
 
 class ClojureContext(DockerContext):
     cmd = 'lein', 'repl',
+    networks = 'host',
 
     def get_all_commands(self):
         return super(ClojureContext, self).get_all_commands() + [
-            CreateNewApp,
+            CreateNewProject,
             Lein,
             Repl,
         ]
@@ -43,7 +46,16 @@ class Repl(Exec):
         return 'lein', 'repl',
 
 
-class CreateNewApp(Exec):
-    def get_command_args(self):
-        return 'lein', 'new', 'app', '--to-dir', \
-                self.context.working_dir, '--force',
+class CreateNewProject(Exec):
+    usage = 'usage: {name} [<template>] [<name>]'
+    short_help = 'Generate new project'
+    hidden = False
+    consume_all_args = False
+
+    def format_args(self, args):
+        result = list(self.get_command_args()) + list(args)
+        return 'lein', 'new', \
+                args.get('<template>', None) or 'app', \
+                args.get('<name>', None) or 'app', \
+                '--to-dir', self.context.working_dir, \
+                '--force',

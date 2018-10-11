@@ -457,13 +457,17 @@ class Exec(DockerCommand):
             return '`{}`'.format(' '.join(args))
         return 'Run a command in a container'
 
+    def format_args(self, args):
+        result = list(self.get_command_args()) + list(args)
+        assert result, 'No arguments for exec'
+        return result
+
     def invoke_with_args(self, args):
+        args = self.format_args(args)
+
         if not self.inspect_data.is_running:
-            args = list(self.get_command_args()) + list(args)
             return self.context.start(args)
 
-        args = list(self.get_command_args()) + list(args)
-        assert args, 'No arguments for exec'
         self.context.executor.append([
             ('docker', 'exec'),
             '-it',

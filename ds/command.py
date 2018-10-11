@@ -54,6 +54,7 @@ class Command(BaseCommand):
         if args:
             assert not command_line
             return self.invoke_with_args(args)
+        assert not args
         return self.invoke_with_args(self.parse_command_line(command_line))
 
     def __call__(self, *args, **kwargs):
