@@ -1,3 +1,4 @@
+#!/usr/bin/env ds
 from os import environ
 
 from base_container import DockerCommand

@@ -1,3 +1,4 @@
+#!/usr/bin/env ds
 # pylint: disable=unused-import
 from base_tmux import hs
 from base_tmux import LAYOUT_EVEN_HORIZONTAL

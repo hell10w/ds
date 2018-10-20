@@ -1,3 +1,4 @@
+#!/usr/bin/env ds
 from base_container import DockerContext
 from base_container import Exec
 from base_pull import Context as PullContext

@@ -1,3 +1,4 @@
+#!/usr/bin/env ds
 from os.path import join
 
 from base_container import DockerContext

@@ -1,3 +1,4 @@
+#!/usr/bin/env ds
 import os
 
 from base_container import DockerContext

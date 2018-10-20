@@ -1,3 +1,4 @@
+import sys
 from collections import OrderedDict
 from logging import getLogger
 from inspect import getmodule
@@ -10,13 +11,11 @@ from ds import fs
 from ds import text
 
 
-BASE_USAGE = 'usage: ds [-v|-vv|-vvv] [--version] [--help] ' \
-             '[-c <context>] ' \
+BASE_USAGE = 'usage: ds <context> [-v|-vv|-vvv] [--version] [-h|--help] ' \
              '[--simulate] '
 BASE_OPTIONS = """
  --simulate      Do nothing
  -v|-vv|-vvv     Verbosity level
- -c <context>    Context module name
 """.strip('\n')
 
 PRE_USAGE = BASE_USAGE + """[<args>...]

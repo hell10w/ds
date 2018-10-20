@@ -1,3 +1,4 @@
+#!/usr/bin/env ds
 from base_pull import Context as PullContext
 from base_postgres import PostgresContext
 
