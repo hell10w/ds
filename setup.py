@@ -15,8 +15,13 @@ setup(
     install_requires=[
         'six',
         'docopt',
-        'prompt_toolkit',
+        'cachetools',
     ],
+    extras_require={
+        'repl': ['prompt_toolkit>=2.0.0'],
+        'tmux': ['libtmux'],
+        'docker': ['docker>=3.1.3'],
+    },
     test_suite='tests',
     include_package_data=True,
     entry_points={

@@ -1,17 +1,15 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 import sys
-from os.path import join
-import readline
 from logging import getLogger
 
-import six
 from prompt_toolkit import PromptSession
 from prompt_toolkit.styles import Style
 from prompt_toolkit.completion import WordCompleter
 
-from ds import text
-from ds.command import Command
+from ds.utils import flatten
+from ds.utils import drop_empty
+
 
 logger = getLogger(__name__)
 
@@ -70,20 +68,19 @@ class Repl(object):
             logger.error('Unknown repl command')
 
     def call_shell(self, input_):
-        args = text.flatten([
+        args = flatten([
             '/bin/bash',
             '-c',
             input_,
         ])
-        self.context.executor.append(
-                args, skip_stdin=True, skip_stdout=True, skip_stderr=True)
+        self.context.executor.\
+            append(args, skip_stdin=True, skip_stdout=True, skip_stderr=True)
         self.context.executor.commit()
 
     def call_context(self, input_):
-        args = text.flatten([sys.argv[:-1], input_])
-
-        self.context.executor.append(
-                args, skip_stdin=True, skip_stdout=True, skip_stderr=True)
+        args = flatten([sys.argv[:-1], input_])
+        self.context.executor.\
+            append(args, skip_stdin=True, skip_stdout=True, skip_stderr=True)
         self.context.executor.commit()
 
     def process_input(self, input_):
@@ -99,16 +96,16 @@ class Repl(object):
         return self.call_context(input_)
 
     def bottom_toolbar(self):
-        return text.join_not_empty(
-            ' ',
+        return ' '.join(drop_empty(
             self.context.project_name,
             self.context.project_root,
             self.context.source_file,
-        )
+        ))
 
     def completer(self):
         variants = []
-        variants += list(map(six.u, self.context.commands.keys()))
+        # variants += list(map(six.u, self.context.commands.keys()))
+        variants += list(self.context.commands.keys())
         variants += list(self.repl_actions.keys())
         variants += ['-h', ]
         return WordCompleter(variants)

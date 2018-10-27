@@ -1,63 +1,27 @@
-import sys
+from __future__ import unicode_literals
 from collections import OrderedDict
 from logging import getLogger
-from inspect import getmodule
-from inspect import getsourcefile
 
-from ds import command
 from ds import executor
-from ds import flow
-from ds import fs
-from ds import text
+from ds import command
+from ds import path
+from ds.summary import TableSummary as _TableSummary
 
-
-BASE_USAGE = 'usage: ds <context> [-v|-vv|-vvv] [--version] [-h|--help] ' \
-             '[--simulate] '
-BASE_OPTIONS = """
- --simulate      Do nothing
- -v|-vv|-vvv     Verbosity level
-""".strip('\n')
-
-PRE_USAGE = BASE_USAGE + """[<args>...]
-
-Options:
-""" + BASE_OPTIONS
-
-USAGE = BASE_USAGE + """<command> [<args>...]
-
-Options:
-""" + BASE_OPTIONS + """
- <command>
-
-Commands:
-{commands}
-"""
 
 logger = getLogger(__name__)
 
 
 class BaseContext(object):
-    executor_class = executor.Executor
-
-    def __init__(self):
-        self._commands = OrderedDict(
-            [(command_class._name, command_class(self))
-             for command_class in self.get_all_commands()])
-        self._executor = None
-
-    def get_all_commands(self):
-        return []
+    def __init__(self, **options):
+        self._commands = OrderedDict([(command_class.name, command_class(self))
+                                      for command_class in self.get_commands()])
 
     @property
     def commands(self):
         return self._commands
 
-    @property
-    def executor(self):
-        return self._executor
-
-    def run(self):
-        pass
+    def get_commands(self):
+        return []
 
     def get_command(self, name):
         for candidate in (name, name.replace('_', '-')):
@@ -79,61 +43,76 @@ class BaseContext(object):
                 return command
             raise
 
+    def check(self):
+        pass
+
+
+class IntrospectionMixin(BaseContext):
     @property
     def source_file(self):
+        from inspect import getmodule
+        from inspect import getsourcefile
         return getsourcefile(getmodule(self))
 
+    def get_commands(self):
+        return super(IntrospectionMixin, self).get_commands() + [
+            command.ShowContext,
+            command.EditContext,
+        ]
+
+
+class ExecutorMixin(BaseContext):
+    executor_class = executor.Executor
+
+    def __init__(self, **options):
+        simulate = options.pop('simulate', False)
+        self._executor = self.executor_class(simulate=simulate)
+        super(ExecutorMixin, self).__init__(**options)
+
+    @property
+    def executor(self):
+        return self._executor
+
+
+class ReplMixin(BaseContext):
     @property
     def repl_class(self):
         from ds.repl import Repl
         return Repl
 
-
-class Context(BaseContext):
-    def get_all_commands(self):
-        return super(Context, self).get_all_commands() + [
-            command.ListCommands,
-            command.ShowContext,
-            command.EditContext,
+    def get_commands(self):
+        return super(ReplMixin, self).get_commands() + [
             command.DsRepl,
         ]
 
+
+class ProjectMixin(BaseContext):
     def get_project_root(self):
-        return fs.find_project_root()
+        return path.get_project_root()
 
     @property
     def project_root(self):
         return self.get_project_root()
 
     def get_project_name(self):
-        return fs.get_project_name()
+        return path.get_project_name()
 
     @property
     def project_name(self):
         return self.get_project_name()
 
-    def run(self):
-        pre_usage_options = flow.pre_usage(PRE_USAGE)
 
-        self._executor = self.executor_class(
-            simulate=pre_usage_options.get('--simulate'))
+class Context(ProjectMixin, IntrospectionMixin, ReplMixin, ExecutorMixin,
+              BaseContext):
+    def get_commands(self):
+        return super(Context, self).get_commands() + [
+            command.ListCommands,
+            command.SwitchContext,
+        ]
 
-        verbose_level = pre_usage_options.get('-v')
-        flow.setup_logging_level(verbose_level)
-
-        columns = [[name, command.short_help]
-                   for name, command in self.commands.items()
-                   if not command.hidden or verbose_level >= 2]
-        commands = text.format_columns(*columns)
-
-        usage_options = flow.usage(USAGE.format(commands=commands or ''))
-
-        name = usage_options.get('<command>')
-        options = usage_options.get('<args>')
-
-        if name not in self.commands:
-            logger.error('Command not found')
-            return
-
-        self[name].invoke(command_line=options)
-        self.executor.commit(replace=True)
+    def get_additional_summary(self):
+        name = '{} ({})'.format(self.__class__.__module__, self.source_file)
+        project = '{} ({})'.format(self.project_name, self.project_root)
+        return [
+            _TableSummary('Context', [['Name', name], ['Project', project]]),
+        ]

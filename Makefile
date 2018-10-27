@@ -14,7 +14,7 @@ clean-dist:
 clean: clean-pyc clean-dist
 
 test:
-	pytest -vvv
+	pytest -s --cov=ds
 
 dist: clean
 	python setup.py sdist

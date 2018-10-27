@@ -1,4 +1,3 @@
-#!/usr/bin/env ds
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -12,7 +11,10 @@ from shutil import copyfile
 from six.moves import input
 
 from ds import context
-from ds import fs
+from ds.path import relative
+from ds.path import get_additional_import
+from ds.path import get_possible_imports
+from ds.discover import find_contexts
 from ds.command import Command
 
 logger = getLogger(__name__)
@@ -24,8 +26,8 @@ dscomplete={path}
 
 
 class Context(context.Context):
-    def get_all_commands(self):
-        return super(Context, self).get_all_commands() + [
+    def get_commands(self):
+        return super(Context, self).get_commands() + [
             InstallAutocomplete,
             ListContexts,
             OverridePreset,
@@ -33,10 +35,10 @@ class Context(context.Context):
 
 
 class ListContexts(Command):
-    short_help = 'Show all posible context modules'
+    short_help = 'Show all possible context modules'
 
     def invoke_with_args(self, args):
-        print(' '.join([item[0] for item in fs.find_contexts()]))
+        print(' '.join([item[0] for item in find_contexts()]))
 
 
 class InstallAutocomplete(Command):
@@ -45,7 +47,7 @@ class InstallAutocomplete(Command):
 
     def invoke_with_args(self, args):
         shell = args['<shell>'] or 'bash'
-        script = fs.relative('autocomplete', shell)
+        script = relative('autocomplete', shell)
         if not exists(script):
             logger.error('Unknown shell: %s', shell)
             return
@@ -55,13 +57,13 @@ class InstallAutocomplete(Command):
 
 class OverridePreset(Command):
     short_help = 'Copy a preset to one of local directories'
-    usage = 'usage: {name} [<preset>]'
+    usage = 'usage: {name}'
 
     default_option = 'default'
     other_option = '(other)'
 
     def invoke_with_args(self, args):
-        variants = [' '.join(item) for item in fs.find_contexts()]
+        variants = [' '.join(item) for item in find_contexts()]
         preset = self.context.executor.\
             fzf(variants, prompt='Preset')
         if not preset:
@@ -83,12 +85,12 @@ class OverridePreset(Command):
         if not dst:
             return
 
-        additional_import = fs.additional_import()
-        existing_additional_import = fs.existing_additional_import()
+        additional_import = get_additional_import()
+        possible_imports = get_possible_imports()
 
-        variants = existing_additional_import + [
-            path for path in additional_import
-            if path not in existing_additional_import
+        variants = additional_import + [
+            path for path in possible_imports
+            if path not in additional_import
         ]
 
         dst_path = self.context.executor.\
