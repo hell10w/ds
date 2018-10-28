@@ -3,7 +3,7 @@ import pytest
 from ds.environment import get_environment
 
 
-context = 'test-context'
+context = 'plain-context'
 
 
 def test_switch_context(shell):

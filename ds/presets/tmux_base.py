@@ -233,7 +233,6 @@ class Inspect(TmuxCommand):
             first_pane = window.list_panes()[0]
 
             name = window.get('window_name') or ''
-            name = name
 
             path = first_pane.get('pane_current_path')
             path = path.replace('\'', '\\\'')
