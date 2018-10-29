@@ -77,12 +77,14 @@ class Executor(ExecutorShortcuts, BaseExecutor):
         skip_stdout = opts.get('skip_stdout', False)
         skip_stdin = opts.get('skip_stdin', False)
         skip_stderr = opts.get('skip_stderr', False)
+        shell = opts.get('shell', False)
         input_ = opts.get('input', None)
 
         popen_kwargs = dict(
             stdin=None if skip_stdin else PIPE,
             stdout=None if skip_stdout else PIPE,
             stderr=None if skip_stderr else PIPE,
+            shell=shell,
         )
         process = Popen(args, **popen_kwargs)
         stdout, stderr = process.communicate(input_)

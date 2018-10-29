@@ -16,7 +16,22 @@ from ds.presets.docker_base import commands
 from ds.presets.docker_base import naming
 
 
-class DockerContext(naming.ContainerNaming, context.Context):
+class DockerContextMixin(context.Context):
+    def __init__(self):
+        super(DockerContextMixin, self).__init__()
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = docker.from_env()
+        return self._client
+
+
+class DockerContext(naming.ContainerNaming, DockerContextMixin,
+                    context.Context):
+    """"""
+
     stop_before_start = True
     remove_before_start = True
 
@@ -26,7 +41,6 @@ class DockerContext(naming.ContainerNaming, context.Context):
 
     def __init__(self):
         super(DockerContext, self).__init__()
-        self._client = None
         self._container = None
 
     def get_commands(self):
@@ -45,12 +59,6 @@ class DockerContext(naming.ContainerNaming, context.Context):
             commands.Shell,
             commands.RootShell,
         )
-
-    @property
-    def client(self):
-        if self._client is None:
-            self._client = docker.from_env()
-        return self._client
 
     @property
     def container(self):

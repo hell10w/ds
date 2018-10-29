@@ -6,6 +6,7 @@ from ds import executor
 from ds import command
 from ds import path
 from ds.summary import TableSummary as _TableSummary
+from ds.utils import cd
 
 
 logger = getLogger(__name__)
@@ -61,6 +62,11 @@ class IntrospectionMixin(BaseContext):
         ]
 
 
+class ChangeDirMixin(BaseContext):
+    def cd(self, path):
+        return cd(path, finalizers=(self.executor.commit, ))
+
+
 class ExecutorMixin(BaseContext):
     executor_class = executor.Executor
 
@@ -103,7 +109,7 @@ class ProjectMixin(BaseContext):
 
 
 class Context(ProjectMixin, IntrospectionMixin, ReplMixin, ExecutorMixin,
-              BaseContext):
+              ChangeDirMixin, BaseContext):
     def get_commands(self):
         return super(Context, self).get_commands() + [
             command.ListCommands,
