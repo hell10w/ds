@@ -5,7 +5,7 @@
 #
 
 __ds_get_context () {
-  filename="$PWD/$$.json"
+  filename="$PWD/.ds-env"
   if [[ -f $filename ]]; then
     echo $(jq '.context' $filename)
   fi
