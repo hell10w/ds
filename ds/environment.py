@@ -63,19 +63,6 @@ class BaseEnvironment(object):
         self._data = None
 
 
-# class TempEnvironment(BaseEnvironment):
-#     def get_environment_filename(self):
-#         ppid = os.getppid()
-#         return '/tmp/ds/{}.json'.format(ppid)
-
-
-# class TopEnvironment(BaseEnvironment):
-#     env_filename = '.ds-env'
-#
-#     def get_environment_filename(self):
-#         return join(find_for(self.env_filename), self.env_filename)
-
-
 class PwdEnvironment(BaseEnvironment):
     env_filename = '.ds-env'
 
