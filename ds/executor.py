@@ -88,7 +88,11 @@ class Executor(ExecutorShortcuts, BaseExecutor):
         )
         process = Popen(args, **popen_kwargs)
         stdout, stderr = process.communicate(input_)
-        return ExecResult(process.poll(), stdout, stderr)
+        code = process.poll()
+        if code:
+            logger.info('Code: %s, stdout: %s, stderr: %s',
+                        code, repr(stdout), repr(stderr))
+        return ExecResult(code, stdout, stderr)
 
     def _replace(self, args, **opts):
         logger.debug('Replace with %s', args)
@@ -100,7 +104,7 @@ class Executor(ExecutorShortcuts, BaseExecutor):
         queue = self._queue
         self._queue = []
         for is_last, (item, opts) in iter_with_last(queue):
-            if is_last and replace:
+            if is_last and replace and not opts:  # TODO: opts
                 self._replace(item, **opts)
                 return
             value = self._call(item, **opts)

@@ -14,8 +14,12 @@ logger = getLogger(__name__)
 
 class BaseContext(object):
     def __init__(self, **options):
-        self._commands = OrderedDict([(command_class.name, command_class(self))
-                                      for command_class in self.get_commands()])
+        self._commands = None  # suppress a circular lookup of absent variable if it is used in `get_commands`
+        self._commands = OrderedDict([
+            (command_class.name, command_class(self))
+            for command_class in self.get_commands()
+            if command_class
+        ])
 
     @property
     def commands(self):
@@ -25,6 +29,8 @@ class BaseContext(object):
         return []
 
     def get_command(self, name):
+        if self.commands is None:
+            return
         for candidate in (name, name.replace('_', '-')):
             if candidate in self.commands:
                 return self.commands[candidate]
