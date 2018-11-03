@@ -13,6 +13,9 @@ from ds.path import pwd
 logger = getLogger(__name__)
 
 
+NULL = object()
+
+
 class BaseEnvironment(object):
     def __init__(self):
         self._data = None
@@ -53,7 +56,15 @@ class BaseEnvironment(object):
         return self._data
 
     def get(self, key, default=None):
-        return self.data.get(key, default)
+        value = self.data.get(key, NULL)
+        if value is not NULL:
+            return value
+        if callable(default):
+            value = default()
+        else:
+            value = default
+        self.set(key, value)
+        return value
 
     def set(self, key, value):
         self.data[key] = value
