@@ -44,6 +44,9 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
 
     monitor = None
 
+    telnet = None
+    wait_telnet = False
+
     shell = None
     wait_shell = False
 
@@ -93,6 +96,7 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
             ('-vnc', self.vnc) if self.vnc else (),
             ('-monitor', self.monitor) if self.monitor else (),
             ('-serial', self.shell) if self.shell else (),
+            ('-serial', self.telnet) if self.telnet else (),
         )
 
     def get_commands(self):
@@ -105,14 +109,16 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
             commands.Reset if self.monitor else None,
             commands.Stop if self.monitor else None,
             commands.Info if self.monitor else None,
-            commands.MonitorShell if self.monitor else None,
-            commands.UnixShell if self.shell else None,
+            commands.AttachMonitor if self.monitor else None,
+            commands.AttachShell if self.shell else None,
+            commands.AttachTelnet if self.telnet else None,
             commands.Viewer if self.vnc else None,
             commands.Kill,
         ]
 
 
-class BasicQemuContext(mixins.TcpSocketControlMixin, BaseQemuContext):
+class BasicQemuContext(mixins.TcpMonitorMixin, mixins.TelnetSerialMixin,
+                       BaseQemuContext):
     smp = None
     memory = 1024
 

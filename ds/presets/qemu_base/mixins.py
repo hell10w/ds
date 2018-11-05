@@ -32,7 +32,7 @@ class SocketOperateMixin(QemuEnvironmentMixin):
         address, opts = address.split(',', 1)
         if protocol == 'unix':
             self.executor.append(('rlwrap', 'nc', '-U', address))
-        elif protocol == 'tcp':
+        elif protocol in ['tcp', 'telnet']:
             self.executor.append(['rlwrap', 'nc'] + address.split(':'))
         else:
             raise NotImplementedError
@@ -44,7 +44,7 @@ class SocketOperateMixin(QemuEnvironmentMixin):
         if protocol == 'unix':
             self.executor.append(('nc', '-U', address), input=data)
             self.executor.commit()
-        elif protocol == 'tcp':
+        elif protocol in ['tcp', 'telnet']:
             self.executor.append(['nc'] + address.split(':'), input=data)
             self.executor.commit()
         else:
@@ -65,8 +65,25 @@ class SocketOperateMixin(QemuEnvironmentMixin):
     def format_tcp(self, path, **options):
         return self.format_address('tcp', path, **options)
 
+    def format_telnet(self, path, **options):
+        return self.format_address('telnet', path, **options)
 
-class TcpSocketControlMixin(SocketOperateMixin):
+
+class TelnetSerialMixin(SocketOperateMixin):
+    @property
+    def telnet_address(self):
+        default = lambda: '127.0.0.1:{}'.format(random.randint(24000, 25000))
+        return self.qemu_environment.get('telnet-address', default=default)
+
+    @property
+    def telnet(self):
+        if not self.telnet_address:
+            return
+        nowait = not self.wait_telnet
+        return self.format_telnet(self.telnet_address, server=True, nowait=nowait)
+
+
+class TcpMonitorMixin(SocketOperateMixin):
     @property
     def monitor_address(self):
         default = lambda: '127.0.0.1:{}'.format(random.randint(24000, 25000))
@@ -78,20 +95,8 @@ class TcpSocketControlMixin(SocketOperateMixin):
             return
         return self.format_tcp(self.monitor_address, server=True, nowait=True)
 
-    @property
-    def shell_address(self):
-        default = lambda: '127.0.0.1:{}'.format(random.randint(24000, 25000))
-        return self.qemu_environment.get('shell-address', default=default)
 
-    @property
-    def shell(self):
-        if not self.shell_address:
-            return
-        nowait = not self.wait_shell
-        return self.format_tcp(self.shell_address, server=True, nowait=nowait)
-
-
-class UnixSocketControlMixin(SocketOperateMixin):
+class UnixMonitorMixin(SocketOperateMixin):
     @property
     def monitor_path(self):
         default = join(self.project_root, '.qemu-monitor')
@@ -103,6 +108,22 @@ class UnixSocketControlMixin(SocketOperateMixin):
             return
         return self.format_unix(self.monitor_path, server=True, nowait=True)
 
+
+class TcpShellMixin(SocketOperateMixin):
+    @property
+    def shell_address(self):
+        default = lambda: '127.0.0.1:{}'.format(random.randint(24000, 25000))
+        return self.qemu_environment.get('shell-address', default=default)
+
+    @property
+    def shell(self):
+        if not self.shell_address:
+            return
+        nowait = not self.wait_shell
+        return self.format_telnet(self.shell_address, server=True, nowait=nowait)
+
+
+class UnixShellMixin(SocketOperateMixin):
     @property
     def shell_path(self):
         default = join(self.project_root, '.qemu-shell')

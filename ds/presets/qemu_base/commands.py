@@ -22,11 +22,11 @@ class CreateDisk(Command):
     usage = '[--format=<format>] [--size=<size>] [<name>]'
 
     def invoke_with_args(self, args):
-        size = args.get('<size>', None) or '1G'
-        format_ = args.get('<format>', None) or 'qcow2'
+        size = args.get('--size', None) or '1G'
+        format_ = args.get('--format', None) or 'qcow2'
         name = args.get('<name>', None)
         if not name:
-            name = 'disk-{}-{}.{}'.format(self.context.project_name,
+            name = 'disk-{}-{}.{}'.format(self.context.project_name or name,
                                           size, format_)
         self.context.executor.append(flatten((
             self.context.qemu_img,
@@ -55,8 +55,8 @@ class RunIsoAndDisk(Command):
     usage = '--iso=<iso> --disk=<disk> [<args>...]'
 
     def invoke_with_args(self, args):
-        self.context.start(('-hda', args.get('<disk>'),
-                            '-cdrom', args.get('<iso>'),
+        self.context.start(('-hda', args.get('--disk'),
+                            '-cdrom', args.get('--iso'),
                             args.get('<args>')))
 
 
@@ -75,8 +75,7 @@ class Start(Command):
 
 class Viewer(Command):
     def invoke_with_args(self, args):
-        display = self.context.qemu_environment. \
-            get('display')
+        display = self.context.qemu_environment.get('display')
         assert display
 
         address = '{host}:{display}'.format(host=self.context.vnc_host,
@@ -88,7 +87,16 @@ class Viewer(Command):
         )))
 
 
-class UnixShell(Command):
+class AttachTelnet(Command):
+    def invoke_with_args(self, args):
+        telnet = self.context.telnet
+        if not telnet:
+            logger.error('Context option `telnet` is not defined')
+            return
+        self.context.connect_to(telnet)
+
+
+class AttachShell(Command):
     def invoke_with_args(self, args):
         shell = self.context.shell
         if not shell:
@@ -97,34 +105,34 @@ class UnixShell(Command):
         self.context.connect_to(shell)
 
 
-class MonitorShell(Command):
+class _MonitorCommand(Command):
     def ensure_monitor(self):
         if not self.context.monitor:
             logger.error('Context option `monitor` is not defined')
             return
         return True
 
+
+class AttachMonitor(_MonitorCommand):
     def invoke_with_args(self, args):
         if not self.ensure_monitor():
             return
         self.context.connect_to(self.context.monitor)
 
 
-class Stop(MonitorShell):
+class Stop(_MonitorCommand):
     def invoke_with_args(self, args):
         if not self.ensure_monitor():
             return
         self.context.send_to(self.context.monitor, 'quit')
 
 
-class Reset(MonitorShell):
+class Reset(_MonitorCommand):
     def invoke_with_args(self, args):
-        if not self.ensure_monitor():
-            return
         self.context.send_to(self.context.monitor, 'system_reset')
 
 
-class Info(MonitorShell):
+class Info(_MonitorCommand):
     consume_all_args = True
 
     def invoke_with_args(self, args):
@@ -136,7 +144,7 @@ class Info(MonitorShell):
         ]) + '\n')
 
 
-class Kill(MonitorShell):
+class Kill(Command):
     def invoke_with_args(self, args):
         self.context.executor.append(('ps', 'ax'))
         result = self.context.executor.commit()
