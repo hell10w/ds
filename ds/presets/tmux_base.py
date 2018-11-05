@@ -214,7 +214,7 @@ class Attach(TmuxCommand):
 
 
 class Inspect(TmuxCommand):
-    usage = 'usage: {name} <session>'
+    usage = '<session>'
     short_help = 'Inspect session'
 
     template_window = 'w(name=\'{name}\', path=\'{path}\')(),'

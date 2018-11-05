@@ -19,17 +19,45 @@ class Help(Command):
 
 
 class CreateDisk(Command):
+    usage = '[--format=<format>] [--size=<size>] [<name>]'
+
     def invoke_with_args(self, args):
-        pass
+        size = args.get('<size>', None) or '1G'
+        format_ = args.get('<format>', None) or 'qcow2'
+        name = args.get('<name>', None)
+        if not name:
+            name = 'disk-{}-{}.{}'.format(self.context.project_name,
+                                          size, format_)
+        self.context.executor.append(flatten((
+            self.context.qemu_img,
+            'create',
+            ('-f', format_),
+            name,
+            size,
+        )))
 
 
 class RunIso(Command):
-    usage = 'usage: {name} <iso> [<args>...]'
+    usage = '<iso> [<args>...]'
 
     def invoke_with_args(self, args):
-        from pprint import pprint
-        pprint(args)
         self.context.start(('-cdrom', args.get('<iso>'), args.get('<args>')))
+
+
+class RunDisk(Command):
+    usage = '<disk> [<args>...]'
+
+    def invoke_with_args(self, args):
+        self.context.start(('-hda', args.get('<disk>'), args.get('<args>')))
+
+
+class RunIsoAndDisk(Command):
+    usage = '--iso=<iso> --disk=<disk> [<args>...]'
+
+    def invoke_with_args(self, args):
+        self.context.start(('-hda', args.get('<disk>'),
+                            '-cdrom', args.get('<iso>'),
+                            args.get('<args>')))
 
 
 class Start(Command):

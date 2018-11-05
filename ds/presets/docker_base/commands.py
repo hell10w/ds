@@ -28,7 +28,7 @@ class DockerCommand(Command):
 
 
 class ShowRunOptions(DockerCommand):
-    usage = 'usage: {name} [<args>...]'
+    usage = '[<args>...]'
     short_help = ''
     consume_all_args = True
     hidden = True
@@ -42,7 +42,7 @@ class ShowRunOptions(DockerCommand):
 
 
 class Create(DockerCommand):
-    usage = 'usage: {name} [<args>...]'
+    usage = '[<args>...]'
     short_help = 'Create a container'
     consume_all_args = True
 
@@ -77,7 +77,7 @@ class Create(DockerCommand):
 
 
 class Start(DockerCommand):
-    usage = 'usage: {name} [<args>...]'
+    usage = '[<args>...]'
     short_help = 'Start a container'
     consume_all_args = True
 
@@ -104,7 +104,7 @@ class Stop(DockerCommand):
 
 class Restart(DockerCommand):
     short_help = 'Restart a container'
-    usage = 'usage: {name} [<args>...]'
+    usage = '[<args>...]'
     consume_all_args = True
 
     def invoke_with_args(self, args):
@@ -115,7 +115,7 @@ class Restart(DockerCommand):
 
 class Recreate(DockerCommand):
     short_help = 'Recreate a container'
-    usage = 'usage: {name} [<args>...]'
+    usage = '[<args>...]'
     consume_all_args = True
 
     def invoke_with_args(self, args):

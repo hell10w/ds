@@ -49,6 +49,7 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
 
     qemu_arch = 'x86_64'
     viewer_bin = 'xvncviewer'
+    qemu_img = 'qemu-img'
 
     @property
     def qemu_bin(self):
@@ -99,6 +100,8 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
             commands.CreateDisk,
             commands.Start,
             commands.RunIso,
+            commands.RunDisk,
+            commands.RunIsoAndDisk,
             commands.Reset if self.monitor else None,
             commands.Stop if self.monitor else None,
             commands.Info if self.monitor else None,

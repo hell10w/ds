@@ -43,7 +43,7 @@ class ListContexts(Command):
 
 class InstallAutocomplete(Command):
     short_help = ''
-    usage = 'usage: {name} [<shell>]'
+    usage = '[<shell>]'
 
     def invoke_with_args(self, args):
         shell = args['<shell>'] or 'bash'

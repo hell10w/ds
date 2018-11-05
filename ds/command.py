@@ -32,7 +32,7 @@ class CommandMeta(type):
 
 class BaseCommand(with_metaclass(CommandMeta)):
     name = None
-    usage = 'usage: {name}'
+    usage = ''
     short_help = ''
     hidden = False
 
@@ -52,7 +52,7 @@ class Command(BaseCommand):
         command_line = command_line or ()
         if self.consume_all_args:
             return command_line
-        usage = self.usage.format(name=self.name)
+        usage = 'usage: {name} {rest}'.format(rest=self.usage, name=self.name)
         return docopt(usage, argv=command_line, options_first=self.options_first)
 
     def invoke_with_args(self, args):
@@ -69,7 +69,7 @@ class Command(BaseCommand):
 
 class SwitchContext(Command):
     options_first = True
-    usage = 'usage: {name} [<context>]'
+    usage = '[<context>]'
     short_help = 'Switch context'
     hidden = True
 
