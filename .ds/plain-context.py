@@ -21,7 +21,7 @@ class Context(context.Context):
 
 
 class EchoTest(Command):
-    usage = 'usage: {name} [<text>]'
+    usage = '[<text>]'
 
     def invoke_with_args(self, args):
         text = args.get('<text>') or ''
