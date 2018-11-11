@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import unicode_literals
-import re
 from logging import getLogger
 from weakref import ref
 
@@ -12,22 +11,20 @@ from ds.environment import get_environment
 from ds.utils import pretty_print_object
 from ds.utils import is_interactive
 from ds.discover import find_contexts
+from ds.utils.kebab_to_snake import kebab_to_snake
 
 
 logger = getLogger(__name__)
 
 
-def kebab_to_snake(name):
-    value = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1-\2', value).lower()
-
-
 class CommandMeta(type):
-    def __new__(mcs, name, bases, dct):
-        command_name = dct.pop('name', None)
-        klass = super(CommandMeta, mcs).__new__(mcs, name, bases, dct)
-        klass.name = command_name or kebab_to_snake(name)
-        return klass
+    pass
+
+    # def __new__(mcs, name, bases, dct):
+    #     command_name = dct.pop('name', None)
+    #     klass = super(CommandMeta, mcs).__new__(mcs, name, bases, dct)
+    #     klass.name = command_name or kebab_to_snake(name)
+    #     return klass
 
 
 class BaseCommand(with_metaclass(CommandMeta)):
@@ -48,11 +45,14 @@ class Command(BaseCommand):
     options_first = True
     consume_all_args = False
 
+    def get_name(self):
+        return kebab_to_snake(self.__class__.__name__)
+
     def parse_command_line(self, command_line):
         command_line = command_line or ()
         if self.consume_all_args:
             return command_line
-        usage = 'usage: {name} {rest}'.format(rest=self.usage, name=self.name)
+        usage = 'usage: {name} {rest}'.format(rest=self.usage, name=self.get_name())
         return docopt(usage, argv=command_line, options_first=self.options_first)
 
     def invoke_with_args(self, args):

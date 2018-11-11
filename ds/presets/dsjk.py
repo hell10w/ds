@@ -57,7 +57,6 @@ class InstallAutocomplete(Command):
 
 class OverridePreset(Command):
     short_help = 'Copy a preset to one of local directories'
-    usage = 'usage: {name}'
 
     default_option = 'default'
     other_option = '(other)'
