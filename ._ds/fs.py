@@ -73,7 +73,7 @@ def additional_import():
 
 
 @cached_func
-def existing_additional_import(exists_only=True):
+def existing_additional_import():
     return [path for path in additional_import() if exists(path)]
 
 

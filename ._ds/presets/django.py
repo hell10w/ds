@@ -1,4 +1,3 @@
-#!/usr/bin/env ds
 from base_container import DockerContext
 from base_container import Exec
 from python import PythonContext

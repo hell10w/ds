@@ -1,4 +1,3 @@
-#!/usr/bin/env ds
 from base_tor import TorContext
 
 
