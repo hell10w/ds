@@ -19,8 +19,8 @@ def clean_path(path):
     return abspath(realpath(path))
 
 
-def relative(*parts):
-    return clean_path(join(dirname(__file__), *parts))
+def relative(*parts, **kwargs):
+    return clean_path(join(dirname(kwargs.pop('target', __file__)), *parts))
 
 
 @cached({})

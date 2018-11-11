@@ -74,9 +74,10 @@ class Executor(ExecutorShortcuts, BaseExecutor):
         if self._simulate:
             return ExecResult(0, '', '')
 
-        skip_stdout = opts.get('skip_stdout', False)
-        skip_stdin = opts.get('skip_stdin', False)
-        skip_stderr = opts.get('skip_stderr', False)
+        skip_all = opts.get('skip_all', False)
+        skip_stdout = opts.get('skip_stdout', skip_all)
+        skip_stdin = opts.get('skip_stdin', skip_all)
+        skip_stderr = opts.get('skip_stderr', skip_all)
         shell = opts.get('shell', False)
         input_ = opts.get('input', None)
 
