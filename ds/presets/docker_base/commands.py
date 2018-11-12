@@ -283,22 +283,19 @@ class Shell(Exec):
 
     @property
     def short_help(self):
-        shell = self.context.shell
+        shell = self.context.shell_entry
         user = self.user
         return 'Run {} in a container with uid {}'.\
             format(shell, user if user else 'unfilled')
 
     def get_command(self):
-        return self.context.shell,
+        return self.context.shell_entry,
 
 
-class RootShell(Exec):
+class RootShell(Shell):
     container_name_required = True
 
     user = 0
-
-    def get_command(self):
-        return self.context.shell,
 
 
 class Pull(DockerCommand):

@@ -17,8 +17,7 @@ from . import mixins
 
 
 class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
-                    mixins.NetworkMixin,
-                    mixins.ShellMixin,
+                    mixins.NetworkMixin, mixins.ShellMixin,
                     BaseDockerContext):
     """"""
 

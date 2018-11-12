@@ -106,7 +106,7 @@ class ProjectMountMixin(WorkingDirMixin):
 
 
 class ShellMixin(BaseDockerContext):
-    shell_entry = '/bin/bash',
+    shell_entry = '/bin/bash'
 
     def get_commands(self):
         return super(ShellMixin, self).get_commands() + [
