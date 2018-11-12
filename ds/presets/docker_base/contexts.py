@@ -10,7 +10,6 @@ except ImportError:
     sys.exit(1)
 
 from ds.summary import TableSummary
-from ds.utils import drop_empty
 from ds.presets.docker_base import commands
 from .base import BaseDockerContext
 from . import naming
@@ -18,6 +17,8 @@ from . import mixins
 
 
 class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
+                    mixins.NetworkMixin,
+                    mixins.ShellMixin,
                     BaseDockerContext):
     """"""
 
@@ -29,22 +30,23 @@ class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
     logs_tail = 100
 
     def get_commands(self):
-        return super(DockerContext, self).get_commands() + drop_empty(
-            commands.ShowRunOptions if self.has_image_name else None,
-            commands.Create if self.has_image_name else None,
-            commands.Start if self.has_image_name else None,
-            commands.Stop if self.has_container_name else None,
-            commands.Recreate if self.has_image_name else None,
-            commands.Restart if self.has_image_name else None,
-            commands.Kill if self.has_container_name else None,
-            commands.Inspect if self.has_container_name else None,
-            commands.Rm if self.has_container_name else None,
-            commands.Logs if self.has_container_name else None,
-            commands.Attach if self.has_container_name else None,
-            commands.Exec if self.has_container_name else None,
-            commands.Shell if self.has_container_name else None,
-            commands.RootShell if self.has_container_name else None,
-        )
+        predicate = lambda command: command.is_appropriate_for_context(self)
+        default = [
+            commands.ShowRunOptions,
+            commands.Create,
+            commands.Start,
+            commands.Stop,
+            commands.Recreate,
+            commands.Restart,
+            commands.Kill,
+            commands.Inspect,
+            commands.Rm,
+            commands.Logs,
+            commands.Attach,
+            commands.Exec,
+        ]
+        return super(DockerContext, self).get_commands() + \
+               list(filter(predicate, default))
 
     def get_additional_summary(self):
         container = self.container

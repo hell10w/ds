@@ -6,10 +6,19 @@ from os.path import join
 from docker.types import Mount
 
 from .base import BaseDockerContext
+from . import commands
 
 
 class ContainerUserMixin(BaseDockerContext):
     container_user = None
+
+
+class NetworkMixin(ContainerUserMixin):
+    network = None
+
+    def get_run_options(self, **options):
+        return super(UserMixin, self). \
+            get_run_options(network=self.network, **options)
 
 
 class UserMixin(ContainerUserMixin):
@@ -94,3 +103,13 @@ class ProjectMountMixin(WorkingDirMixin):
                       type='bind',
                       read_only=self.project_mount_readonly)
         return super(ProjectMountMixin, self).get_mounts() + [mount]
+
+
+class ShellMixin(BaseDockerContext):
+    shell_entry = '/bin/bash',
+
+    def get_commands(self):
+        return super(ShellMixin, self).get_commands() + [
+            commands.Shell,
+            commands.RootShell,
+        ]

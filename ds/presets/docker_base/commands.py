@@ -11,6 +11,17 @@ logger = getLogger(__name__)
 
 
 class DockerCommand(Command):
+    container_name_required = False
+    image_name_required = False
+
+    @classmethod
+    def is_appropriate_for_context(cls, context):
+        if cls.container_name_required and not context.has_container_name:
+            return False
+        if cls.image_name_required and not context.has_image_name:
+            return False
+        return True
+
     @property
     def is_exists(self):
         return self.context.container is not None
@@ -28,6 +39,9 @@ class DockerCommand(Command):
 
 
 class ShowRunOptions(DockerCommand):
+    container_name_required = True
+    image_name_required = True
+
     usage = '[<args>...]'
     short_help = ''
     consume_all_args = True
@@ -42,6 +56,8 @@ class ShowRunOptions(DockerCommand):
 
 
 class Create(DockerCommand):
+    container_name_required = True
+
     usage = '[<args>...]'
     short_help = 'Create a container'
     consume_all_args = True
@@ -80,6 +96,9 @@ class Create(DockerCommand):
 
 
 class Start(DockerCommand):
+    container_name_required = True
+    image_name_required = True
+
     usage = '[<args>...]'
     short_help = 'Start a container'
     consume_all_args = True
@@ -95,6 +114,8 @@ class Start(DockerCommand):
 
 
 class Stop(DockerCommand):
+    container_name_required = True
+
     short_help = 'Stop a container'
 
     def invoke_with_args(self, args):
@@ -106,6 +127,9 @@ class Stop(DockerCommand):
 
 
 class Restart(DockerCommand):
+    container_name_required = True
+    image_name_required = True
+
     short_help = 'Restart a container'
     usage = '[<args>...]'
     consume_all_args = True
@@ -117,6 +141,9 @@ class Restart(DockerCommand):
 
 
 class Recreate(DockerCommand):
+    container_name_required = True
+    image_name_required = True
+
     short_help = 'Recreate a container'
     usage = '[<args>...]'
     consume_all_args = True
@@ -130,6 +157,8 @@ class Recreate(DockerCommand):
 
 
 class Kill(DockerCommand):
+    container_name_required = True
+
     short_help = 'Kill a container'
 
     def invoke_with_args(self, args):
@@ -138,6 +167,8 @@ class Kill(DockerCommand):
 
 
 class Rm(DockerCommand):
+    container_name_required = True
+
     short_help = 'Remove a container'
 
     def invoke_with_args(self, args):
@@ -148,6 +179,8 @@ class Rm(DockerCommand):
 
 
 class Logs(DockerCommand):
+    container_name_required = True
+
     short_help = 'Fetch the logs of a container'
 
     def invoke_with_args(self, args):
@@ -162,6 +195,8 @@ class Logs(DockerCommand):
 
 
 class Inspect(DockerCommand):
+    container_name_required = True
+
     short_help = 'Return low-level information on Docker objects'
 
     def invoke_with_args(self, args):
@@ -174,6 +209,8 @@ class Inspect(DockerCommand):
 
 
 class Attach(DockerCommand):
+    container_name_required = True
+
     short_help = 'Attach a local stdin/stdout to a container'
 
     def invoke_with_args(self, args):
@@ -197,6 +234,8 @@ class Attach(DockerCommand):
 
 
 class Exec(DockerCommand):
+    container_name_required = True
+
     usage = 'usage: {name} <args>...'
     consume_all_args = True
 
@@ -240,6 +279,8 @@ class Exec(DockerCommand):
 
 
 class Shell(Exec):
+    container_name_required = True
+
     @property
     def short_help(self):
         shell = self.context.shell
@@ -252,6 +293,8 @@ class Shell(Exec):
 
 
 class RootShell(Exec):
+    container_name_required = True
+
     user = 0
 
     def get_command(self):
@@ -259,6 +302,8 @@ class RootShell(Exec):
 
 
 class Pull(DockerCommand):
+    image_name_required = True
+
     def invoke_with_args(self, args):
         self.context.executor.append([
             ('docker', 'pull'),
@@ -267,4 +312,4 @@ class Pull(DockerCommand):
 
 
 class Build(DockerCommand):
-    pass
+    image_name_required = True
