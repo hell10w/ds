@@ -16,9 +16,6 @@ ExecResult = namedtuple('ExecResult', ('code', 'stdout', 'stderr'))
 
 
 class BaseExecutor(object):
-    def __init__(self, simulate=False):
-        self._simulate = simulate
-
     def append(self, args, **opts):
         raise NotImplementedError
 
@@ -55,8 +52,8 @@ class ExecutorShortcuts(BaseExecutor):
 
 
 class Executor(ExecutorShortcuts, BaseExecutor):
-    def __init__(self, simulate=False):
-        super(Executor, self).__init__(simulate=simulate)
+    def __init__(self):
+        super(Executor, self).__init__()
         self._queue = []
 
     @property
@@ -71,8 +68,6 @@ class Executor(ExecutorShortcuts, BaseExecutor):
 
     def _call(self, args, **opts):
         logger.debug('Call with %s', args)
-        if self._simulate:
-            return ExecResult(0, '', '')
 
         skip_all = opts.get('skip_all', False)
         skip_stdout = opts.get('skip_stdout', skip_all)
@@ -97,8 +92,6 @@ class Executor(ExecutorShortcuts, BaseExecutor):
 
     def _replace(self, args, **opts):
         logger.debug('Replace with %s', args)
-        if self._simulate:
-            return
         execvp(args[0], args[:])
 
     def commit(self, replace=False):
@@ -111,6 +104,25 @@ class Executor(ExecutorShortcuts, BaseExecutor):
             value = self._call(item, **opts)
             if is_last:
                 return value
+
+
+class TestExecutor(Executor):
+    CALL = 'call'
+    REPLACE = 'replace'
+
+    def __init__(self):
+        super(TestExecutor, self).__init__()
+        self._log = []
+
+    @property
+    def execute_log(self):
+        return self._log
+
+    def _call(self, args, **opts):
+        self._log.append((self.CALL, args, opts))
+
+    def _replace(self, args, **opts):
+        self._log.append((self.REPLACE, args, opts))
 
 
 def iter_with_last(items):

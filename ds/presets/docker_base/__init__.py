@@ -1,5 +1,5 @@
+from .contexts import BaseDockerContext
 from .contexts import DockerContext
-from .contexts import DockerContextMixin
 from .contexts import ExternalContext
 from .contexts import BuildContext
 from .contexts import PullContext

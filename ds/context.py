@@ -82,13 +82,16 @@ class ExecutorMixin(BaseContext):
     executor_class = executor.Executor
 
     def __init__(self, **options):
-        simulate = options.pop('simulate', False)
-        self._executor = self.executor_class(simulate=simulate)
+        self._executor = self.executor_class()
         super(ExecutorMixin, self).__init__(**options)
 
     @property
     def executor(self):
         return self._executor
+
+
+class TestExecutorMixin(ExecutorMixin):
+    executor_class = executor.TestExecutor
 
 
 class ReplMixin(BaseContext):

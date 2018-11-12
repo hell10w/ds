@@ -5,10 +5,14 @@ from os.path import join
 
 from docker.types import Mount
 
-from .contexts import DockerContext
+from .base import BaseDockerContext
 
 
-class UserMixin(DockerContext):
+class ContainerUserMixin(BaseDockerContext):
+    container_user = None
+
+
+class UserMixin(ContainerUserMixin):
     @property
     def container_user(self):
         return os.getuid()
@@ -18,7 +22,25 @@ class UserMixin(DockerContext):
             get_run_options(user=self.container_user, **options)
 
 
-class HomeMountsMixin(DockerContext):
+class MountsMixin(BaseDockerContext):
+    def get_run_options(self, **options):
+        return super(MountsMixin, self).\
+            get_run_options(mounts=self.get_mounts())
+
+    def get_mounts(self):
+        return []
+
+
+class EnvironmentMixin(BaseDockerContext):
+    def get_run_options(self, **options):
+        return super(EnvironmentMixin, self).\
+            get_run_options(environment=self.get_envs())
+
+    def get_envs(self):
+        return {}
+
+
+class HomeMountsMixin(MountsMixin):
     container_home = '/',
 
     home_mounts = [
@@ -45,9 +67,15 @@ class HomeMountsMixin(DockerContext):
         return super(HomeMountsMixin, self).get_mounts() + additional
 
 
-class ProjectMountMixin(DockerContext):
+class WorkingDirMixin(MountsMixin):
     working_dir = '/app/'
 
+    def get_run_options(self, **options):
+        return super(WorkingDirMixin, self). \
+            get_run_options(working_dir=self.working_dir, **options)
+
+
+class ProjectMountMixin(WorkingDirMixin):
     @property
     def project_mount_path(self):
         return self.project_root

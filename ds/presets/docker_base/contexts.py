@@ -9,27 +9,16 @@ except ImportError:
     print('Install docker-py with `pip install docker`')
     sys.exit(1)
 
-from ds import context
 from ds.summary import TableSummary
 from ds.utils import drop_empty
 from ds.presets.docker_base import commands
-from ds.presets.docker_base import naming
+from .base import BaseDockerContext
+from . import naming
+from . import mixins
 
 
-class DockerContextMixin(context.Context):
-    def __init__(self):
-        super(DockerContextMixin, self).__init__()
-        self._client = None
-
-    @property
-    def client(self):
-        if self._client is None:
-            self._client = docker.from_env()
-        return self._client
-
-
-class DockerContext(naming.ContainerNaming, DockerContextMixin,
-                    context.Context):
+class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
+                    BaseDockerContext):
     """"""
 
     stop_before_start = True
@@ -39,57 +28,23 @@ class DockerContext(naming.ContainerNaming, DockerContextMixin,
 
     logs_tail = 100
 
-    def __init__(self):
-        super(DockerContext, self).__init__()
-        self._container = None
-
     def get_commands(self):
         return super(DockerContext, self).get_commands() + drop_empty(
             commands.ShowRunOptions if self.has_image_name else None,
             commands.Create if self.has_image_name else None,
             commands.Start if self.has_image_name else None,
-            commands.Stop,
+            commands.Stop if self.has_container_name else None,
             commands.Recreate if self.has_image_name else None,
             commands.Restart if self.has_image_name else None,
-            commands.Kill,
-            commands.Inspect,
-            commands.Rm,
-            commands.Logs,
-            commands.Attach,
-            commands.Exec,
-            commands.Shell,
-            commands.RootShell,
+            commands.Kill if self.has_container_name else None,
+            commands.Inspect if self.has_container_name else None,
+            commands.Rm if self.has_container_name else None,
+            commands.Logs if self.has_container_name else None,
+            commands.Attach if self.has_container_name else None,
+            commands.Exec if self.has_container_name else None,
+            commands.Shell if self.has_container_name else None,
+            commands.RootShell if self.has_container_name else None,
         )
-
-    @property
-    def container(self):
-        if not self.container_name:
-            return
-        try:
-            return self.client.containers.get(self.container_name)
-        except docker.errors.NotFound:
-            pass
-
-    def get_run_options(self, **options):
-        """
-        https://docker-py.readthedocs.io/en/stable/containers.html#docker.models.containers.ContainerCollection.run
-        """
-        result = dict(
-            detach=False,
-            auto_remove=True,
-            stdin_open=True,
-            tty=True,
-            mounts=self.get_mounts(),
-            environment=self.get_envs(),
-        )
-        result.update(options)
-        return result
-
-    def get_mounts(self):
-        return []
-
-    def get_envs(self):
-        return []
 
     def get_additional_summary(self):
         container = self.container
