@@ -55,10 +55,13 @@ class Create(DockerCommand):
                 logger.error('Container is running already')
                 sys.exit(1)
 
+        command = self.context.base_container_command + \
+                  (args or self.context.default_container_command)
+
         options = self.context. \
             get_run_options(image=self.context.image_name,
                             name=self.context.container_name,
-                            command=args if args else None)
+                            command=command if command else None)
 
         if self.is_exists:
             if self.context.remove_before_start:
@@ -158,6 +161,18 @@ class Logs(DockerCommand):
         ])
 
 
+class Inspect(DockerCommand):
+    short_help = 'Return low-level information on Docker objects'
+
+    def invoke_with_args(self, args):
+        if not self.ensure_running():
+            return
+        self.context.executor.append([
+            ('docker', 'inspect'),
+            self.context.container_name,
+        ])
+
+
 class Attach(DockerCommand):
     short_help = 'Attach a local stdin/stdout to a container'
 
@@ -182,19 +197,73 @@ class Attach(DockerCommand):
 
 
 class Exec(DockerCommand):
-    pass
+    usage = 'usage: {name} <args>...'
+    consume_all_args = True
+
+    @property
+    def user(self):
+        from .mixins import UserMixin
+        user = None
+        if isinstance(self.context, UserMixin):
+            user = self.context.container_user
+        return user
+
+    @property
+    def short_help(self):
+        args = self.get_command()
+        if args:
+            return '`{}`'.format(' '.join(args))
+        return 'Run a command in a container'
+
+    def invoke_with_args(self, invoke_args):
+        if not self.is_running:
+            logger.error('Container isn\'t running')
+            return
+
+        args = self.format_args(invoke_args)
+
+        self.context.executor.append([
+            ('docker', 'exec'),
+            '-it',
+            ('-u', str(self.user)) if self.user is not None else (),
+            self.context.container_name,
+            args,
+        ])
+
+    def format_args(self, invoke_args):
+        result = list(self.get_command()) + list(invoke_args)
+        assert result, 'No arguments for exec'
+        return result
+
+    def get_command(self):
+        return ()
 
 
 class Shell(Exec):
-    pass
+    @property
+    def short_help(self):
+        shell = self.context.shell
+        user = self.user
+        return 'Run {} in a container with uid {}'.\
+            format(shell, user if user else 'unfilled')
+
+    def get_command(self):
+        return self.context.shell,
 
 
 class RootShell(Exec):
-    pass
+    user = 0
+
+    def get_command(self):
+        return self.context.shell,
 
 
 class Pull(DockerCommand):
-    pass
+    def invoke_with_args(self, args):
+        self.context.executor.append([
+            ('docker', 'pull'),
+            self.context.image_name,
+        ])
 
 
 class Build(DockerCommand):

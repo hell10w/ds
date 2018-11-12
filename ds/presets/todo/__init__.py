@@ -13,6 +13,7 @@ logger = getLogger()
 
 class Context(context.Context):
     files = 'incoming', 'backlog', 'doing', 'done'
+    commit_with_empty_message = False
 
     def get_commands(self):
         return super(Context, self).get_commands() + [
@@ -33,6 +34,10 @@ class Context(context.Context):
     @property
     def templates(self):
         return listdir(self.templates_path)
+
+    @property
+    def commit_message(self):
+        return '' if self.commit_with_empty_message else '.'
 
 
 class Init(Command):
@@ -80,7 +85,7 @@ class Commit(Command):
             self.context.executor.append(('git', 'add', filename))
         self.context.executor.append(('git', 'commit',
                                       '--allow-empty-message',
-                                      '-m', ''))
+                                      '-m', self.context.commit_message))
 
 
 class Status(Command):

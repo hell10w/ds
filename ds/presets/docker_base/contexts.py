@@ -52,6 +52,7 @@ class DockerContext(naming.ContainerNaming, DockerContextMixin,
             commands.Recreate if self.has_image_name else None,
             commands.Restart if self.has_image_name else None,
             commands.Kill,
+            commands.Inspect,
             commands.Rm,
             commands.Logs,
             commands.Attach,
@@ -79,11 +80,15 @@ class DockerContext(naming.ContainerNaming, DockerContextMixin,
             stdin_open=True,
             tty=True,
             mounts=self.get_mounts(),
+            environment=self.get_envs(),
         )
         result.update(options)
         return result
 
     def get_mounts(self):
+        return []
+
+    def get_envs(self):
         return []
 
     def get_additional_summary(self):
@@ -97,6 +102,20 @@ class DockerContext(naming.ContainerNaming, DockerContextMixin,
         return super(DockerContext, self).get_additional_summary() + [
             TableSummary('Container', cells),
         ]
+
+    def get_base_container_command(self):
+        return []
+
+    @property
+    def base_container_command(self):
+        return self.get_base_container_command()
+
+    def get_default_container_command(self):
+        return []
+
+    @property
+    def default_container_command(self):
+        return self.get_default_container_command()
 
 
 class ExternalContext(DockerContext):
@@ -122,7 +141,8 @@ class PullContext(naming.ImageNaming, DockerContext):
     def image_name(self):
         if not self.default_image:
             return
-        return ':'.join([self.default_image, self.default_tag])
+        return ':'.join(filter(lambda value: value,
+                               [self.default_image, self.default_tag]))
 
     def get_commands(self):
         return super(PullContext, self).get_commands() + [
