@@ -10,8 +10,8 @@ except ImportError:
     sys.exit(1)
 
 from ds.summary import TableSummary
-from ds.presets.docker_base import commands
 from .base import BaseDockerContext
+from . import commands
 from . import naming
 from . import mixins
 

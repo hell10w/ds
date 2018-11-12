@@ -280,11 +280,14 @@ class Exec(DockerCommand):
 
 class Shell(Exec):
     container_name_required = True
+    user = None
 
     @property
     def short_help(self):
         shell = self.context.shell_entry
         user = self.user
+        if user is None:
+            user = self.context.container_user
         return 'Run {} in a container with uid {}'.\
             format(shell, user if user else 'unfilled')
 

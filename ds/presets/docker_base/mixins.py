@@ -12,12 +12,16 @@ from . import commands
 class ContainerUserMixin(BaseDockerContext):
     container_user = None
 
+    def get_run_options(self, **options):
+        return super(ContainerUserMixin, self). \
+            get_run_options(user=self.container_user, **options)
+
 
 class NetworkMixin(ContainerUserMixin):
     network = None
 
     def get_run_options(self, **options):
-        return super(UserMixin, self). \
+        return super(NetworkMixin, self). \
             get_run_options(network=self.network, **options)
 
 
@@ -26,27 +30,25 @@ class UserMixin(ContainerUserMixin):
     def container_user(self):
         return os.getuid()
 
-    def get_run_options(self, **options):
-        return super(UserMixin, self).\
-            get_run_options(user=self.container_user, **options)
-
 
 class MountsMixin(BaseDockerContext):
     def get_run_options(self, **options):
         return super(MountsMixin, self).\
-            get_run_options(mounts=self.get_mounts())
+            get_run_options(mounts=self.get_mounts(), **options)
 
     def get_mounts(self):
         return []
 
 
 class EnvironmentMixin(BaseDockerContext):
+    container_environment = {}
+
     def get_run_options(self, **options):
         return super(EnvironmentMixin, self).\
-            get_run_options(environment=self.get_envs())
+            get_run_options(environment=self.get_environment(), **options)
 
-    def get_envs(self):
-        return {}
+    def get_environment(self):
+        return self.container_environment
 
 
 class HomeMountsMixin(MountsMixin):
@@ -105,7 +107,7 @@ class ProjectMountMixin(WorkingDirMixin):
         return super(ProjectMountMixin, self).get_mounts() + [mount]
 
 
-class ShellMixin(BaseDockerContext):
+class ShellMixin(ContainerUserMixin):
     shell_entry = '/bin/bash'
 
     def get_commands(self):
