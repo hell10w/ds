@@ -15,7 +15,12 @@ logger = getLogger(__name__)
 class BaseContext(object):
     def __init__(self, **options):
         self._commands = OrderedDict()
-        for command_class in self.get_commands():
+
+        commands = self.get_commands()
+        commands = self._filter_commands(commands)
+        commands = self._sort_commands(commands)
+
+        for command_class in commands:
             if not command_class:
                 continue
             name = None
@@ -29,6 +34,13 @@ class BaseContext(object):
     @property
     def commands(self):
         return self._commands
+
+    def _filter_commands(self, commands):
+        return commands
+
+    def _sort_commands(self, commands):
+        key = lambda command: (command.weight, command.__name__)
+        return sorted(commands, key=key)
 
     def get_commands(self):
         return []

@@ -20,18 +20,16 @@ logger = getLogger(__name__)
 class CommandMeta(type):
     pass
 
-    # def __new__(mcs, name, bases, dct):
-    #     command_name = dct.pop('name', None)
-    #     klass = super(CommandMeta, mcs).__new__(mcs, name, bases, dct)
-    #     klass.name = command_name or kebab_to_snake(name)
-    #     return klass
-
 
 class BaseCommand(with_metaclass(CommandMeta)):
     name = None
+
+    hidden = False
+
     usage = ''
     short_help = ''
-    hidden = False
+
+    weight = 1000
 
     def __init__(self, context):
         self._context = ref(context)

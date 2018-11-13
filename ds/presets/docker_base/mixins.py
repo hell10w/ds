@@ -9,6 +9,64 @@ from .base import BaseDockerContext
 from . import commands
 
 
+class AttachMixin(BaseDockerContext):
+    detach_keys = 'ctrl-c'
+
+    def get_commands(self):
+        return super(AttachMixin, self).get_commands() + [
+            commands.Attach,
+        ]
+
+
+class ManageContainerMixin(BaseDockerContext):
+    stop_before_start = True
+    remove_before_start = True
+
+    def get_commands(self):
+        return super(ManageContainerMixin, self).get_commands() + [
+            commands.Start,
+            commands.Stop,
+            commands.Restart,
+            commands.Kill,
+            commands.Rm,
+            commands.Inspect,
+            commands.Exec,
+        ]
+
+
+class CreateContainerMixin(ManageContainerMixin):
+    def get_commands(self):
+        return super(CreateContainerMixin, self).get_commands() + [
+            commands.ShowRunOptions,
+            commands.Create,
+            commands.Recreate,
+        ]
+
+    def get_container_entry(self):
+        return []
+
+    def get_container_cmd(self):
+        return []
+
+    @property
+    def container_entry(self):
+        return self.get_container_entry()
+
+    @property
+    def container_cmd(self):
+        return self.get_container_cmd()
+
+
+class LogsMixin(BaseDockerContext):
+    logs_tail = 100
+    logs_follow = True
+
+    def get_commands(self):
+        return super(LogsMixin, self).get_commands() + [
+            commands.Logs,
+        ]
+
+
 class ContainerUserMixin(BaseDockerContext):
     container_user = None
 

@@ -14,13 +14,7 @@ class DockerCommand(Command):
     container_name_required = False
     image_name_required = False
 
-    @classmethod
-    def is_appropriate_for_context(cls, context):
-        if cls.container_name_required and not context.has_container_name:
-            return False
-        if cls.image_name_required and not context.has_image_name:
-            return False
-        return True
+    weight = 3000
 
     @property
     def is_exists(self):
@@ -45,7 +39,10 @@ class ShowRunOptions(DockerCommand):
     usage = '[<args>...]'
     short_help = ''
     consume_all_args = True
+
     hidden = True
+
+    weight = 2010
 
     def invoke_with_args(self, args):
         options = self.context. \
@@ -57,22 +54,21 @@ class ShowRunOptions(DockerCommand):
 
 class Create(DockerCommand):
     container_name_required = True
+    image_name_required = True
 
     usage = '[<args>...]'
     short_help = 'Create a container'
     consume_all_args = True
 
-    def invoke_with_args(self, args):
-        if self.is_running:
-            if self.context.stop_before_start:
-                logger.debug('Store a container')
-                self.context.stop()
-            else:
-                logger.error('Container is running already')
-                sys.exit(1)
+    weight = 2020
 
-        command = self.context.base_container_command + \
-                  (args or self.context.default_container_command)
+    def invoke_with_args(self, args):
+        if self.is_exists:
+            logger.error('Container exists already')
+            sys.exit(1)
+
+        command = self.context.container_entry + \
+                  (args or self.context.container_cmd)
 
         options = self.context. \
             get_run_options(image=self.context.image_name,
@@ -103,7 +99,17 @@ class Start(DockerCommand):
     short_help = 'Start a container'
     consume_all_args = True
 
+    weight = 2030
+
     def invoke_with_args(self, args):
+        if self.is_running:
+            if self.context.stop_before_start:
+                logger.debug('Store a container')
+                self.context.stop()
+            else:
+                logger.error('Container is running already')
+                sys.exit(1)
+
         options, container = self.context.create(args)
 
         if options.get('detach', False):
@@ -117,6 +123,8 @@ class Stop(DockerCommand):
     container_name_required = True
 
     short_help = 'Stop a container'
+
+    weight = 2040
 
     def invoke_with_args(self, args):
         if not self.is_running:
@@ -134,6 +142,8 @@ class Restart(DockerCommand):
     usage = '[<args>...]'
     consume_all_args = True
 
+    weight = 2050
+
     def invoke_with_args(self, args):
         if self.is_running:
             self.context.stop()
@@ -148,6 +158,8 @@ class Recreate(DockerCommand):
     usage = '[<args>...]'
     consume_all_args = True
 
+    weight = 2060
+
     def invoke_with_args(self, args):
         if self.is_running:
             self.context.stop()
@@ -161,6 +173,8 @@ class Kill(DockerCommand):
 
     short_help = 'Kill a container'
 
+    weight = 2070
+
     def invoke_with_args(self, args):
         if self.context.container:
             self.context.container.kill()
@@ -170,6 +184,8 @@ class Rm(DockerCommand):
     container_name_required = True
 
     short_help = 'Remove a container'
+
+    weight = 2080
 
     def invoke_with_args(self, args):
         if self.is_running:
@@ -183,12 +199,14 @@ class Logs(DockerCommand):
 
     short_help = 'Fetch the logs of a container'
 
+    weight = 2090
+
     def invoke_with_args(self, args):
         if not self.ensure_running():
             return
         self.context.executor.append([
             ('docker', 'logs'),
-            '--follow',
+            '--follow' if self.context.logs_follow else (),
             ('--tail', str(self.context.logs_tail)),
             self.context.container_name,
         ])
@@ -197,7 +215,9 @@ class Logs(DockerCommand):
 class Inspect(DockerCommand):
     container_name_required = True
 
-    short_help = 'Return low-level information on Docker objects'
+    short_help = 'Return low-level information about a container'
+
+    weight = 2100
 
     def invoke_with_args(self, args):
         if not self.ensure_running():
@@ -212,6 +232,8 @@ class Attach(DockerCommand):
     container_name_required = True
 
     short_help = 'Attach a local stdin/stdout to a container'
+
+    weight = 2110
 
     def invoke_with_args(self, args):
         if not self.is_exists:
@@ -238,6 +260,8 @@ class Exec(DockerCommand):
 
     usage = 'usage: {name} <args>...'
     consume_all_args = True
+
+    weight = 2120
 
     @property
     def user(self):
@@ -282,14 +306,16 @@ class Shell(Exec):
     container_name_required = True
     user = None
 
+    weight = 2130
+
     @property
     def short_help(self):
         shell = self.context.shell_entry
         user = self.user
         if user is None:
             user = self.context.container_user
-        return 'Run {} in a container with uid {}'.\
-            format(shell, user if user else 'unfilled')
+        return 'Run {} in a container with uid={}'.\
+            format(shell, user if user is not None else '*unfilled*')
 
     def get_command(self):
         return self.context.shell_entry,
@@ -298,11 +324,17 @@ class Shell(Exec):
 class RootShell(Shell):
     container_name_required = True
 
+    weight = 2140
+
     user = 0
 
 
 class Pull(DockerCommand):
     image_name_required = True
+
+    short_help = 'Pull an image from a registry'
+
+    weight = 2150
 
     def invoke_with_args(self, args):
         self.context.executor.append([
@@ -313,3 +345,7 @@ class Pull(DockerCommand):
 
 class Build(DockerCommand):
     image_name_required = True
+
+    short_help = 'Build an image'
+
+    weight = 2150

@@ -45,3 +45,13 @@ class BaseDockerContext(naming.ContainerNaming, context.Context):
         )
         result.update(options)
         return result
+
+    def filter_commands(self, commands):
+        result = []
+        for command in commands:
+            if command.container_name_required and not self.has_container_name:
+                continue
+            if command.image_name_required and not self.has_image_name:
+                continue
+            result.append(command)
+        return result

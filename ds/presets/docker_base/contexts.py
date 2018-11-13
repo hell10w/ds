@@ -18,35 +18,9 @@ from . import mixins
 
 class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
                     mixins.NetworkMixin, mixins.ShellMixin,
+                    mixins.LogsMixin, mixins.AttachMixin,
+                    mixins.ManageContainerMixin,
                     BaseDockerContext):
-    """"""
-
-    stop_before_start = True
-    remove_before_start = True
-
-    detach_keys = 'ctrl-c'
-
-    logs_tail = 100
-
-    def get_commands(self):
-        predicate = lambda command: command.is_appropriate_for_context(self)
-        default = [
-            commands.ShowRunOptions,
-            commands.Create,
-            commands.Start,
-            commands.Stop,
-            commands.Recreate,
-            commands.Restart,
-            commands.Kill,
-            commands.Inspect,
-            commands.Rm,
-            commands.Logs,
-            commands.Attach,
-            commands.Exec,
-        ]
-        return super(DockerContext, self).get_commands() + \
-               list(filter(predicate, default))
-
     def get_additional_summary(self):
         container = self.container
         cells = [
@@ -59,33 +33,21 @@ class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
             TableSummary('Container', cells),
         ]
 
-    def get_base_container_command(self):
-        return []
-
-    @property
-    def base_container_command(self):
-        return self.get_base_container_command()
-
-    def get_default_container_command(self):
-        return []
-
-    @property
-    def default_container_command(self):
-        return self.get_default_container_command()
-
 
 class ExternalContext(DockerContext):
     pass
 
 
-class BuildContext(naming.ImageNaming, DockerContext):
+class BuildContext(naming.ImageNaming, mixins.CreateContainerMixin,
+                   DockerContext):
     def get_commands(self):
         return super(BuildContext, self).get_commands() + [
             commands.Build,
         ]
 
 
-class PullContext(naming.ImageNaming, DockerContext):
+class PullContext(naming.ImageNaming, mixins.CreateContainerMixin,
+                  DockerContext):
     default_image = None
     default_tag = 'latest'
 
