@@ -42,12 +42,6 @@ class CreateContainerMixin(ManageContainerMixin):
             commands.Recreate,
         ]
 
-    def get_container_entry(self):
-        return []
-
-    def get_container_cmd(self):
-        return []
-
     @property
     def container_entry(self):
         return self.get_container_entry()
@@ -55,6 +49,12 @@ class CreateContainerMixin(ManageContainerMixin):
     @property
     def container_cmd(self):
         return self.get_container_cmd()
+
+    def get_container_entry(self):
+        return []
+
+    def get_container_cmd(self):
+        return []
 
 
 class LogsMixin(BaseDockerContext):
@@ -71,16 +71,16 @@ class ContainerUserMixin(BaseDockerContext):
     container_user = None
 
     def get_run_options(self, **options):
-        return super(ContainerUserMixin, self). \
-            get_run_options(user=self.container_user, **options)
+        options.setdefault('user', self.container_user)
+        return super(ContainerUserMixin, self).get_run_options(**options)
 
 
 class NetworkMixin(ContainerUserMixin):
     network = None
 
     def get_run_options(self, **options):
-        return super(NetworkMixin, self). \
-            get_run_options(network=self.network, **options)
+        options.setdefault('network', self.network)
+        return super(NetworkMixin, self).get_run_options(**options)
 
 
 class UserMixin(ContainerUserMixin):
@@ -91,8 +91,8 @@ class UserMixin(ContainerUserMixin):
 
 class MountsMixin(BaseDockerContext):
     def get_run_options(self, **options):
-        return super(MountsMixin, self).\
-            get_run_options(mounts=self.get_mounts(), **options)
+        options.setdefault('mounts', self.get_mounts())
+        return super(MountsMixin, self).get_run_options(**options)
 
     def get_mounts(self):
         return []
@@ -102,8 +102,8 @@ class EnvironmentMixin(BaseDockerContext):
     container_environment = {}
 
     def get_run_options(self, **options):
-        return super(EnvironmentMixin, self).\
-            get_run_options(environment=self.get_environment(), **options)
+        options.setdefault('environment', self.get_environment())
+        return super(EnvironmentMixin, self).get_run_options(**options)
 
     def get_environment(self):
         return self.container_environment
@@ -140,8 +140,8 @@ class WorkingDirMixin(MountsMixin):
     working_dir = '/app/'
 
     def get_run_options(self, **options):
-        return super(WorkingDirMixin, self). \
-            get_run_options(working_dir=self.working_dir, **options)
+        options.setdefault('working_dir', self.working_dir)
+        return super(WorkingDirMixin, self).get_run_options(**options)
 
 
 class ProjectMountMixin(WorkingDirMixin):
@@ -152,10 +152,6 @@ class ProjectMountMixin(WorkingDirMixin):
     @property
     def project_mount_readonly(self):
         return False
-
-    def get_run_options(self, **options):
-        return super(ProjectMountMixin, self). \
-            get_run_options(working_dir=self.working_dir, **options)
 
     def get_mounts(self):
         mount = Mount(target=self.working_dir,

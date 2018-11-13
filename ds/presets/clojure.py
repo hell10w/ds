@@ -13,15 +13,15 @@ class ClojureContext(DockerContext):
             Repl,
         ]
 
-    def get_default_container_command(self):
-        return 'lein', 'repl',
-
 
 class Context(ClojureContext, naming.DefaultNaming,
               mixins.HomeMountsMixin, mixins.ProjectMountMixin,
               PullContext):
     default_image = 'clojure'
     default_tag = 'lein'
+
+    def get_container_default(self):
+        return 'lein', 'repl'
 
 
 class Lein(Exec):

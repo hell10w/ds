@@ -1,10 +1,14 @@
 from __future__ import unicode_literals
+from logging import getLogger
 
 import docker
 import docker.errors
 
 from ds import context
 from . import naming
+
+
+logger = getLogger()
 
 
 class BaseDockerContext(naming.ContainerNaming, context.Context):
@@ -44,8 +48,10 @@ class BaseDockerContext(naming.ContainerNaming, context.Context):
         result = []
         for command in commands:
             if command.container_name_required and not self.has_container_name:
+                logger.debug('Filter command %s', command)
                 continue
             if command.image_name_required and not self.has_image_name:
+                logger.debug('Filter command %s', command)
                 continue
             result.append(command)
-        return result
+        return super(BaseDockerContext, self).filter_commands(result)
