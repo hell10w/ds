@@ -5,21 +5,17 @@ from __future__ import unicode_literals
 from logging import getLogger
 
 from ds.command import Command
+from ds.command import preset_base_command
 from ds.utils.flatten import flatten
 
 
 logger = getLogger()
 
 
-class Help(Command):
-    short_help = 'Show all possible context modules'
-
-    def invoke_with_args(self, args):
-        pass
-
-
 class CreateDisk(Command):
     usage = '[--format=<format>] [--size=<size>] [<name>]'
+
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         size = args.get('--size', None) or '1G'
@@ -40,6 +36,8 @@ class CreateDisk(Command):
 class RunIso(Command):
     usage = '<iso> [<args>...]'
 
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         self.context.start(('-cdrom', args.get('<iso>'), args.get('<args>')))
 
@@ -47,12 +45,16 @@ class RunIso(Command):
 class RunDisk(Command):
     usage = '<disk> [<args>...]'
 
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         self.context.start(('-hda', args.get('<disk>'), args.get('<args>')))
 
 
 class RunIsoAndDisk(Command):
     usage = '--iso=<iso> --disk=<disk> [<args>...]'
+
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         self.context.start(('-hda', args.get('--disk'),
@@ -62,6 +64,8 @@ class RunIsoAndDisk(Command):
 
 class Start(Command):
     consume_all_args = True
+
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         self.context.executor.append(flatten((
@@ -74,6 +78,8 @@ class Start(Command):
 
 
 class Viewer(Command):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         display = self.context.qemu_environment.get('display')
         assert display
@@ -88,6 +94,8 @@ class Viewer(Command):
 
 
 class AttachTelnet(Command):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         telnet = self.context.telnet
         if not telnet:
@@ -97,6 +105,8 @@ class AttachTelnet(Command):
 
 
 class AttachShell(Command):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         shell = self.context.shell
         if not shell:
@@ -114,6 +124,8 @@ class _MonitorCommand(Command):
 
 
 class AttachMonitor(_MonitorCommand):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         if not self.ensure_monitor():
             return
@@ -121,6 +133,8 @@ class AttachMonitor(_MonitorCommand):
 
 
 class Stop(_MonitorCommand):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         if not self.ensure_monitor():
             return
@@ -128,12 +142,16 @@ class Stop(_MonitorCommand):
 
 
 class Reset(_MonitorCommand):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         self.context.send_to(self.context.monitor, 'system_reset')
 
 
 class Info(_MonitorCommand):
     consume_all_args = True
+
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if not self.ensure_monitor():
@@ -145,6 +163,8 @@ class Info(_MonitorCommand):
 
 
 class Kill(Command):
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         self.context.executor.append(('ps', 'ax'))
         result = self.context.executor.commit()

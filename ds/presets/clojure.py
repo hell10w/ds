@@ -3,11 +3,12 @@ from ds.presets.docker_base import naming
 from ds.presets.docker_base import DockerContext
 from ds.presets.docker_base import PullContext
 from ds.presets.docker_base.commands import Exec
+from ds.command import preset_command
 
 
 class ClojureContext(DockerContext):
-    def get_all_commands(self):
-        return super(ClojureContext, self).get_all_commands() + [
+    def get_commands(self):
+        return super(ClojureContext, self).get_commands() + [
             CreateNewProject,
             Lein,
             Repl,
@@ -25,11 +26,15 @@ class Context(ClojureContext, naming.DefaultNaming,
 
 
 class Lein(Exec):
+    weight = preset_command()
+
     def get_command(self):
         return 'lein',
 
 
 class Repl(Exec):
+    weight = preset_command()
+
     def get_command(self):
         return 'lein', 'repl',
 
@@ -37,8 +42,9 @@ class Repl(Exec):
 class CreateNewProject(Exec):
     usage = '[<template>] [<name>]'
     short_help = 'Generate new project'
-    hidden = False
     consume_all_args = False
+
+    weight = preset_command()
 
     def format_args(self, args):
         return 'lein', 'new', \

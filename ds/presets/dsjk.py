@@ -16,8 +16,11 @@ from ds.path import get_additional_import
 from ds.path import get_possible_imports
 from ds.discover import find_contexts
 from ds.command import Command
+from ds.command import preset_base_command
+
 
 logger = getLogger(__name__)
+
 
 BASHRC = """
 dscomplete={path}
@@ -37,6 +40,8 @@ class Context(context.Context):
 class ListContexts(Command):
     short_help = 'Show all possible context modules'
 
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         print(' '.join([item[0] for item in find_contexts()]))
 
@@ -44,6 +49,8 @@ class ListContexts(Command):
 class InstallAutocomplete(Command):
     short_help = ''
     usage = '[<shell>]'
+
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         shell = args['<shell>'] or 'bash'
@@ -57,6 +64,8 @@ class InstallAutocomplete(Command):
 
 class OverridePreset(Command):
     short_help = 'Copy a preset to one of local directories'
+
+    weight = preset_base_command()
 
     default_option = 'default'
     other_option = '(other)'

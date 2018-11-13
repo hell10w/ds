@@ -12,6 +12,7 @@ except ImportError:
 
 from ds import context
 from ds.command import Command
+from ds.command import preset_base_command
 
 logger = getLogger(__name__)
 
@@ -177,6 +178,8 @@ class TmuxCommand(Command):
 class Up(TmuxCommand):
     short_help = 'Start session'
 
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         if not self.ensure_session_exists(expected=False):
             return
@@ -188,6 +191,8 @@ class Up(TmuxCommand):
 class Kill(TmuxCommand):
     short_help = 'Kill session'
 
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         if not self.ensure_session_exists():
             return
@@ -196,6 +201,8 @@ class Kill(TmuxCommand):
 
 class Status(TmuxCommand):
     short_help = 'Session status'
+
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.session is None:
@@ -207,6 +214,8 @@ class Status(TmuxCommand):
 class Attach(TmuxCommand):
     short_help = 'Attach session'
 
+    weight = preset_base_command()
+
     def invoke_with_args(self, args):
         if not self.ensure_session_exists():
             return
@@ -216,6 +225,8 @@ class Attach(TmuxCommand):
 class Inspect(TmuxCommand):
     usage = '<session>'
     short_help = 'Inspect session'
+
+    weight = preset_base_command()
 
     template_window = 'w(name=\'{name}\', path=\'{path}\')(),'
 

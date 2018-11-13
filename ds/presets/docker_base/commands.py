@@ -4,6 +4,7 @@ from pprint import pprint
 import sys
 
 from ds.command import Command
+from ds.command import preset_base_command
 from ds.utils.term import get_tty_width
 
 
@@ -14,7 +15,7 @@ class DockerCommand(Command):
     container_name_required = False
     image_name_required = False
 
-    weight = 3000
+    weight = preset_base_command()
 
     @property
     def is_exists(self):
@@ -32,6 +33,28 @@ class DockerCommand(Command):
         return True
 
 
+class Pull(DockerCommand):
+    image_name_required = True
+
+    short_help = 'Pull an image from a registry'
+
+    weight = preset_base_command()
+
+    def invoke_with_args(self, args):
+        self.context.executor.append([
+            ('docker', 'pull'),
+            self.context.image_name,
+        ])
+
+
+class Build(DockerCommand):
+    image_name_required = True
+
+    short_help = 'Build an image'
+
+    weight = preset_base_command()
+
+
 class ShowRunOptions(DockerCommand):
     container_name_required = True
     image_name_required = True
@@ -42,7 +65,7 @@ class ShowRunOptions(DockerCommand):
 
     hidden = True
 
-    weight = 2010
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         options = self.context. \
@@ -60,7 +83,7 @@ class Create(DockerCommand):
     short_help = 'Create a container'
     consume_all_args = True
 
-    weight = 2020
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.is_exists:
@@ -99,7 +122,7 @@ class Start(DockerCommand):
     short_help = 'Start a container'
     consume_all_args = True
 
-    weight = 2030
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.is_running:
@@ -124,7 +147,7 @@ class Stop(DockerCommand):
 
     short_help = 'Stop a container'
 
-    weight = 2040
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if not self.is_running:
@@ -142,7 +165,7 @@ class Restart(DockerCommand):
     usage = '[<args>...]'
     consume_all_args = True
 
-    weight = 2050
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.is_running:
@@ -158,7 +181,7 @@ class Recreate(DockerCommand):
     usage = '[<args>...]'
     consume_all_args = True
 
-    weight = 2060
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.is_running:
@@ -173,7 +196,7 @@ class Kill(DockerCommand):
 
     short_help = 'Kill a container'
 
-    weight = 2070
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.context.container:
@@ -185,7 +208,7 @@ class Rm(DockerCommand):
 
     short_help = 'Remove a container'
 
-    weight = 2080
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if self.is_running:
@@ -199,7 +222,7 @@ class Logs(DockerCommand):
 
     short_help = 'Fetch the logs of a container'
 
-    weight = 2090
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if not self.ensure_running():
@@ -217,7 +240,7 @@ class Inspect(DockerCommand):
 
     short_help = 'Return low-level information about a container'
 
-    weight = 2100
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if not self.ensure_running():
@@ -233,7 +256,7 @@ class Attach(DockerCommand):
 
     short_help = 'Attach a local stdin/stdout to a container'
 
-    weight = 2110
+    weight = preset_base_command()
 
     def invoke_with_args(self, args):
         if not self.is_exists:
@@ -261,7 +284,7 @@ class Exec(DockerCommand):
     usage = 'usage: {name} <args>...'
     consume_all_args = True
 
-    weight = 2120
+    weight = preset_base_command()
 
     @property
     def user(self):
@@ -304,9 +327,10 @@ class Exec(DockerCommand):
 
 class Shell(Exec):
     container_name_required = True
-    user = None
 
-    weight = 2130
+    weight = preset_base_command()
+
+    user = None
 
     @property
     def short_help(self):
@@ -324,28 +348,6 @@ class Shell(Exec):
 class RootShell(Shell):
     container_name_required = True
 
-    weight = 2140
+    weight = preset_base_command()
 
     user = 0
-
-
-class Pull(DockerCommand):
-    image_name_required = True
-
-    short_help = 'Pull an image from a registry'
-
-    weight = 2150
-
-    def invoke_with_args(self, args):
-        self.context.executor.append([
-            ('docker', 'pull'),
-            self.context.image_name,
-        ])
-
-
-class Build(DockerCommand):
-    image_name_required = True
-
-    short_help = 'Build an image'
-
-    weight = 2150

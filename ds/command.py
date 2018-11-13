@@ -9,12 +9,18 @@ from six import with_metaclass
 from ds import path
 from ds.environment import get_environment
 from ds.utils import pretty_print_object
+from ds.utils import numerator
 from ds.utils import is_interactive
 from ds.discover import find_contexts
 from ds.utils.kebab_to_snake import kebab_to_snake
 
 
 logger = getLogger(__name__)
+
+
+generic_command = numerator(1000)
+preset_base_command = numerator(2000)
+preset_command = numerator(3000)
 
 
 class CommandMeta(type):
@@ -29,7 +35,7 @@ class BaseCommand(with_metaclass(CommandMeta)):
     usage = ''
     short_help = ''
 
-    weight = 1000
+    weight = 0
 
     def __init__(self, context):
         self._context = ref(context)
@@ -69,7 +75,10 @@ class SwitchContext(Command):
     options_first = True
     usage = '[<context>]'
     short_help = 'Switch context'
+
     hidden = True
+
+    weight = generic_command()
 
     def invoke_with_args(self, args):
         name = self.get_context_name(args)
@@ -100,6 +109,8 @@ class ListCommands(Command):
     short_help = 'List all commands in context (autocomplete helper)'
     hidden = True
 
+    weight = generic_command()
+
     def invoke_with_args(self, args):
         print(' '.join(self.context.commands.keys()))
 
@@ -107,6 +118,8 @@ class ListCommands(Command):
 class ShowContext(Command):
     short_help = 'Show a context info (autocomplete helper)'
     hidden = True
+
+    weight = generic_command()
 
     def invoke_with_args(self, args):
         context_class = self.context.__class__
@@ -119,6 +132,8 @@ class EditContext(Command):
     short_help = 'Edit a context with $EDITOR'
     hidden = True
 
+    weight = generic_command()
+
     def invoke_with_args(self, args):
         if not is_interactive():
             return
@@ -128,6 +143,8 @@ class EditContext(Command):
 class DsRepl(Command):
     short_help = 'Read-eval-print-loop'
     hidden = True
+
+    weight = generic_command()
 
     def invoke_with_args(self, args):
         self.context.repl_class(self.context)(args)

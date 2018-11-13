@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 import os
 
-from docker_base import PullContext
-from docker_base import DefaultNaming
-from docker_base import UserMixin
-from docker_base import HomeMountsMixin
-from docker_base import ProjectMountMixin
+from ds.presets.docker_base import PullContext
+from ds.presets.docker_base import DefaultNaming
+from ds.presets.docker_base import UserMixin
+from ds.presets.docker_base import HomeMountsMixin
+from ds.presets.docker_base import ProjectMountMixin
 
 
 class Context(ProjectMountMixin, UserMixin, HomeMountsMixin,
