@@ -23,12 +23,21 @@ class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
                     BaseDockerContext):
     def get_additional_summary(self):
         container = self.container
+
+        container_name = '-'
+        if self.has_container_name:
+            container_name = self.container_name
+        image_name = '-'
+        if self.has_image_name:
+            image_name = self.image_name
+
         cells = [
-            ['Name', self.container_name or '-'],
-            ['Image', self.image_name or '-'],
+            ['Name', container_name],
+            ['Image', image_name],
             ['Status', container.status if container else '-'],
             ['ID', container.short_id if container else '-'],
         ]
+
         return super(DockerContext, self).get_additional_summary() + [
             TableSummary('Container', cells),
         ]

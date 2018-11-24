@@ -35,6 +35,7 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
     drive = ()
     net = ()
     device = ()
+    usbdevice = 'tablet',
     serial = ()
     chardev = ()
 
@@ -79,6 +80,10 @@ class BaseQemuContext(mixins.SocketOperateMixin, context.Context):
             [
                 ('-drive', item)
                 for item in self.drive
+            ],
+            [
+                ('-usbdevice', item)
+                for item in self.usbdevice
             ],
             [
                 ('-device', item)

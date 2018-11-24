@@ -4,10 +4,13 @@ from ds import context
 
 
 class ContainerNaming(context.Context):
+    ensure_container_name = True
+
     def check(self):
         super(ContainerNaming, self).check()
-        assert (self.has_container_name and self.container_name), \
-            'Container name is not defined'
+        if self.ensure_container_name:
+            assert (self.has_container_name and self.container_name), \
+                'Container name is not defined'
 
     @property
     def has_container_name(self):

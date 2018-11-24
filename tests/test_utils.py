@@ -18,7 +18,23 @@ def test_flatten():
 
 
 def test_interactive():
-    assert utils.is_interactive()
+    try:
+        utils.is_interactive()
+    except Exception:
+        pytest.fail('is_interactive')
+
+
+def test_tty():
+    try:
+        utils.get_tty_size()
+        utils.get_tty_width()
+    except Exception:
+        pytest.fail('tty')
+
+
+def test_random_passwords():
+    assert utils.generate_random_string(10, 'a') == ('a' * 10)
+    assert len(utils.generate_random_string(10)) == 10
 
 
 def test_pretty_printer(capsys):

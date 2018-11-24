@@ -16,11 +16,7 @@ class BaseContext(object):
     def __init__(self, **options):
         self._commands = OrderedDict()
 
-        commands = self.get_commands()
-        commands = self._filter_commands(commands)
-        commands = self._sort_commands(commands)
-
-        for command_class in commands:
+        for command_class in self.get_commands():
             if not command_class:
                 continue
             name = None
@@ -30,6 +26,11 @@ class BaseContext(object):
             if name is None:
                 name = command.get_name()
             self._commands[name] = command
+
+        # self._commands = OrderedDict([])
+        # self._sort_commands(self._filter_commands(self._commands.items()))
+        # commands = self._filter_commands(commands)
+        # commands = self._sort_commands(commands)
 
     @property
     def commands(self):
