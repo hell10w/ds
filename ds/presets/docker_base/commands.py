@@ -54,6 +54,14 @@ class Build(DockerCommand):
 
     weight = preset_base_command()
 
+    def invoke_with_args(self, args):
+        self.context.executor.append([
+            ('docker', 'build'),
+            ('-t', self.context.image_name),
+            ('-f', self.context.docker_file) if self.context.docker_file else (),
+            self.context.build_path if self.context.build_path else (),
+        ])
+
 
 class ShowRunOptions(DockerCommand):
     container_name_required = True
@@ -90,8 +98,8 @@ class Create(DockerCommand):
             logger.error('Container exists already')
             sys.exit(1)
 
-        command = self.context.container_entry + \
-                  (args or self.context.container_cmd)
+        command = list(self.context.container_entry) + \
+                  list(args or self.context.container_cmd)
 
         options = self.context. \
             get_run_options(image=self.context.image_name,

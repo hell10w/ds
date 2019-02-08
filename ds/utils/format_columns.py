@@ -16,7 +16,7 @@ def format_columns(*items, **opts):
         ''.join([
             line_prefix,
             column_delim.join([
-                value.ljust(width[column])
+                (value or '').ljust(width[column])
                 for column, value in enumerate(row)
             ])
         ])

@@ -16,6 +16,9 @@ from . import naming
 from . import mixins
 
 
+UNDEFINED = '(undefined)'
+
+
 class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
                     mixins.NetworkMixin, mixins.ShellMixin,
                     mixins.LogsMixin, mixins.AttachMixin,
@@ -32,8 +35,8 @@ class DockerContext(mixins.MountsMixin, mixins.EnvironmentMixin,
             image_name = self.image_name
 
         cells = [
-            ['Name', container_name],
-            ['Image', image_name],
+            ['Name', container_name or UNDEFINED],
+            ['Image', image_name or UNDEFINED],
             ['Status', container.status if container else '-'],
             ['ID', container.short_id if container else '-'],
         ]
@@ -53,6 +56,20 @@ class BuildContext(naming.ImageNaming, mixins.CreateContainerMixin,
         return super(BuildContext, self).get_commands() + [
             commands.Build,
         ]
+
+    def get_build_path(self):
+        return self.project_root
+
+    @property
+    def build_path(self):
+        return self.get_build_path()
+
+    def get_docker_file(self):
+        return 'Dockerfile'
+
+    @property
+    def docker_file(self):
+        return self.get_docker_file()
 
 
 class PullContext(naming.ImageNaming, mixins.CreateContainerMixin,
