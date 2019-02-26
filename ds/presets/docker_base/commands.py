@@ -292,6 +292,9 @@ class Exec(DockerCommand):
     usage = 'usage: {name} <args>...'
     consume_all_args = True
 
+    interactive = True
+    tty = True
+
     weight = preset_base_command()
 
     @property
@@ -318,7 +321,8 @@ class Exec(DockerCommand):
 
         self.context.executor.append([
             ('docker', 'exec'),
-            '-it',
+            '-i' if self.interactive else (),
+            '-t' if self.tty else (),
             ('-u', str(self.user)) if self.user is not None else (),
             self.context.container_name,
             args,

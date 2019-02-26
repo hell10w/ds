@@ -50,7 +50,7 @@ class ExternalContext(DockerContext):
     pass
 
 
-class BuildContext(naming.ImageNaming, mixins.CreateContainerMixin,
+class BuildContext(naming.BuildNaming, mixins.CreateContainerMixin,
                    DockerContext):
     def get_commands(self):
         return super(BuildContext, self).get_commands() + [

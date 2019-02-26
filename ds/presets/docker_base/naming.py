@@ -35,3 +35,25 @@ class DefaultNaming(ImageNaming, ContainerNaming):
             return
         image = self.image_name.split(':', 1)[0]
         return '--'.join([self.project_name, image])
+
+
+class BuildNaming(ContainerNaming):
+    def check(self):
+        assert self.image_name, 'Image suffix is not defined'
+        super(BuildNaming, self).check()
+
+    @property
+    def image_name(self):
+        if not self.image_suffix:
+            return
+        return '/'.join([self.project_name, self.image_suffix])
+
+    @property
+    def container_name(self):
+        if not self.image_name:
+            return
+        return self.image_name.replace('/', '--')
+
+    @property
+    def image_suffix(self):
+        return self.__module__

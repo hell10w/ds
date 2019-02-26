@@ -55,3 +55,11 @@ class BaseDockerContext(naming.ContainerNaming, context.Context):
                 continue
             result.append(command)
         return super(BaseDockerContext, self).filter_commands(result)
+
+    def calc_cpu_to_options(self, cpu=1.0):
+        period = int(cpu * 100000)
+        quota = int(cpu * 50000)
+        return {
+            'cpu_period': period,
+            'cpu_quota': quota,
+        }
