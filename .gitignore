@@ -102,3 +102,5 @@ ENV/
 .session.vim
 .pytest_cache/
 roadmap
+.ds-env
+(legacy)/
