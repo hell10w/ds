@@ -1,6 +1,7 @@
 import os
 import sys
 from logging import getLogger
+from os import getcwd
 from os.path import join
 
 from ds.command import Command
@@ -69,6 +70,7 @@ class Context(_Context):
         return get_environment().get('current_services', None)
 
     def set_current_services(self, value):
+        logger.debug('Set services: %s', value)
         get_environment().set('current_services', value)
 
     current_services = property(get_current_services, fset=set_current_services)
@@ -143,12 +145,24 @@ class Context(_Context):
             TableSummary('Compose', cells),
         ]
 
+    def check(self):
+        assert getcwd() == self.project_root, \
+            'Change current directory to project root'
+        super(Context, self).check()
+
 
 class Switch(Command):
-    consume_all_args = False
+    consume_all_args = True
 
     def invoke_with_args(self, args):
-        self.context.switch_current_service(allow_all=True)
+        if not args:
+            self.context.switch_current_service(allow_all=True)
+            return
+
+        services = set(self.context.all_services)
+        if set(args) != {'.'}:
+            services &= set(args)
+        self.context.current_services = list(services)
 
 
 class Recreate(Command):
