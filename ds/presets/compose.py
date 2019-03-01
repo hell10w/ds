@@ -185,7 +185,7 @@ class ComposeCommand(Command):
             services = self.context.switch_current_service()
             if services is None:
                 sys.exit(1)
-        return filter(lambda value: value, services)
+        return filter(lambda value: value, services or ())
 
     def get_command_options(self, args):
         return args if self.prepend_args else ()
