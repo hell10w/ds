@@ -176,7 +176,7 @@ class Recreate(Command):
         self.context['stop']()
 
         logger.info('Remove')
-        self.context['rm']()
+        self.context['rm']('-f')
 
         logger.info('Up and detach')
         self.context['up']('-d')
@@ -192,8 +192,11 @@ class ComposeCommand(Command):
     with_services = True
     prepend_args = False
     with_command_name = True
+    forced_service = None
 
     def get_services(self):
+        if self.forced_service:
+            return self.forced_service,
         services = self.context.current_services
         if not services and not self.allow_multiple:
             services = self.context.switch_current_service()
@@ -240,7 +243,7 @@ class Down(ComposeCommand):
 
 
 class Rm(ComposeCommand):
-    pass
+    allow_multiple = False
 
 
 class Logs(ComposeCommand):
