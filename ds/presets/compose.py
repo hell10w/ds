@@ -244,6 +244,7 @@ class Down(ComposeCommand):
 
 class Rm(ComposeCommand):
     allow_multiple = False
+    prepend_args = True
 
 
 class Logs(ComposeCommand):
