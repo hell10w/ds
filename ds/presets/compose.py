@@ -146,8 +146,8 @@ class Context(_Context):
         ]
 
     def check(self):
-        assert getcwd() == self.project_root, \
-            'Change current directory to project root'
+        if getcwd() != self.project_root:
+            logger.warning('Current directory is not project\'s root')
         super(Context, self).check()
 
 
