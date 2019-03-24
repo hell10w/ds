@@ -1,8 +1,8 @@
 # pylint: disable=unused-import
-from tmux_base import TmuxSessionContext
-from tmux_base import v
-from tmux_base import h
-from tmux_base import w
+from dsjk_tmux.presets.base import TmuxSessionContext
+from dsjk_tmux.presets.base import v
+from dsjk_tmux.presets.base import h
+from dsjk_tmux.presets.base import w
 
 
 class Context(TmuxSessionContext):

@@ -1,14 +1,9 @@
 from __future__ import unicode_literals
-import sys
 from functools import partial
 from logging import getLogger
 
 import six
-try:
-    import libtmux
-except ImportError:
-    print('Install libtmux with `pip install libtmux`')
-    sys.exit(1)
+import libtmux
 
 from ds import context
 from ds.command import Command
