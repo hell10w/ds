@@ -6,8 +6,8 @@ from logging import getLogger
 import random
 
 from ds import context
-from ds.presets.qemu_base import commands
-from ds.presets.qemu_base import mixins
+from dsjk_qemu.presets.base import commands
+from dsjk_qemu.presets.base import mixins
 
 
 logger = getLogger(__name__)
