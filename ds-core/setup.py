@@ -4,14 +4,14 @@ from setuptools import setup
 import ds
 
 setup(
-    name='dsjk',
+    name='dsjk-core',
     version=ds.__version__,
     author='',
     author_email='',
     url='',
     description='',
     long_description=open('README.md').read().strip(),
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests', )),
     install_requires=[
         'six',
         'docopt',
@@ -19,8 +19,6 @@ setup(
     ],
     extras_require={
         'repl': ['prompt_toolkit>=2.0.0'],
-        'tmux': ['libtmux'],
-        'docker': ['docker>=3.1.3'],
     },
     test_suite='tests',
     include_package_data=True,

@@ -8,11 +8,14 @@ from os.path import exists
 from os.path import expanduser
 from os.path import join
 from os.path import realpath
+import pkgutil
+import importlib
 
 from cachetools import cached
 
 
 HIDDEN_PREFIX = '.ds'
+PRESETS_PREFIX = 'dsjk_'
 
 
 def clean_path(path):
@@ -69,6 +72,21 @@ def get_project_root():
 
 
 @cached({})
+def get_preset_extensions():
+    result = []
+    for _, name, _ in pkgutil.iter_modules():
+        if not name.startswith(PRESETS_PREFIX):
+            continue
+        try:
+            importlib.import_module(name)
+            result.append(name)
+        except:
+            # it doesn't matter if can't import
+            pass
+    return result
+
+
+@cached({})
 def get_possible_imports():
     result = OrderedDict()
     for item in walk_top():
@@ -80,4 +98,5 @@ def get_possible_imports():
 
 @cached({})
 def get_additional_import():
-    return filter(exists, get_possible_imports())
+    result = filter(exists, get_possible_imports())
+    return result

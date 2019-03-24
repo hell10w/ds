@@ -112,7 +112,7 @@ def main():
             logger.exception(error)
             context_fallback(context_name)
             sys.exit(errors.NO_CONTEXT_MODULE)
-        from ds.presets import dsjk as context_module
+        from ds.presets import ds as context_module
 
     if not hasattr(context_module, 'Context'):
         logger.error(errors.NO_CONTEXT_CLASS_MESSAGE)

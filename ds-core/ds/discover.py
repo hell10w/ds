@@ -2,8 +2,10 @@ import os
 from os.path import exists
 from os.path import isdir
 from os.path import join
+import pkgutil
 
 from ds.path import get_additional_import
+from ds.path import get_preset_extensions
 
 
 def get_modules(path):
@@ -21,6 +23,20 @@ def get_modules(path):
 
 def find_contexts():
     result = []
+
     for path in get_additional_import():
         result += [(name, path) for name in get_modules(path)]
+
+    for extension in get_preset_extensions():
+        try:
+            module = __import__(extension)
+            path = module.__path__[0] + '/presets'
+            for _, name, ispkg in pkgutil.walk_packages([path]):
+                if ispkg:
+                    continue
+                context = '.'.join([extension, 'presets', name])
+                result.append((context, context))
+        except:
+            pass
+
     return result
