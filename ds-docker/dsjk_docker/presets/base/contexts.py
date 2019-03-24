@@ -1,13 +1,4 @@
 from __future__ import unicode_literals
-import sys
-
-try:
-    import docker
-    import docker.errors
-    from docker.types import Mount
-except ImportError:
-    print('Install docker-py with `pip install docker`')
-    sys.exit(1)
 
 from ds.summary import TableSummary
 from .base import BaseDockerContext

@@ -1,5 +1,5 @@
 from ds.context import BaseContext
-from ds.presets.docker_base.commands import Exec
+from dsjk_docker.presets.base.commands import Exec
 
 
 class IPythonMixin(BaseContext):

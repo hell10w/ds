@@ -1,5 +1,5 @@
-from ds.presets.docker_base import DockerContext, PullContext, DefaultNaming
-from ds.presets.docker_base.commands import Exec
+from dsjk_docker.presets.base import DockerContext, PullContext, DefaultNaming
+from dsjk_docker.presets.base.commands import Exec
 
 
 class RedisContext(DockerContext):

@@ -1,7 +1,7 @@
 from os.path import join
 
-from ds.presets.docker_base import BaseDockerContext
-from ds.presets.docker_base.commands import Exec, Shell
+from dsjk_docker.presets.base import BaseDockerContext
+from dsjk_docker.presets.base.commands import Exec, Shell
 
 
 class PipMixin(BaseDockerContext):

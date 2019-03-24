@@ -1,8 +1,8 @@
-from ds.presets.docker_base import mixins
-from ds.presets.docker_base import naming
-from ds.presets.docker_base import DockerContext
-from ds.presets.docker_base import PullContext
-from ds.presets.docker_base.commands import Exec
+from dsjk_docker.presets.base import mixins
+from dsjk_docker.presets.base import naming
+from dsjk_docker.presets.base import DockerContext
+from dsjk_docker.presets.base import PullContext
+from dsjk_docker.presets.base.commands import Exec
 from ds.command import preset_command
 
 
