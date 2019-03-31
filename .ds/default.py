@@ -16,6 +16,7 @@ class Context(context.Context):
             CleanPyc,
             CleanDist,
             Publish,
+            Test,
         ]
 
 
@@ -77,4 +78,18 @@ class Publish(Command):
                 chain.append('python', 'setup.py', 'sdist', 'upload',
                              '-r', 'pypi')
             self.context.clean_dist((package, ))
+        self.context.clean_pyc()
+
+
+class Test(Command):
+    consume_all_args = True
+
+    def invoke_with_args(self, args):
+        if not args:
+            args = self.packages
+        executor = self.context.executor
+        for path in args:
+            with executor.chain(path=path,
+                                skip_stdout=True) as chain:
+                chain.append('pytest', '-s')
         self.context.clean_pyc()

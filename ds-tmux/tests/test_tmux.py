@@ -1,7 +1,7 @@
-from ds.presets.tmux_template import TmuxSessionContext
-from ds.presets.tmux_template import w
-from ds.presets.tmux_template import v
-from ds.presets.tmux_template import h
+from dsjk_tmux.presets.base import TmuxSessionContext
+from dsjk_tmux.presets.base import w
+from dsjk_tmux.presets.base import v
+from dsjk_tmux.presets.base import h
 
 
 class TmuxTestContext(TmuxSessionContext):

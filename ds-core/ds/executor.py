@@ -8,7 +8,7 @@ from subprocess import Popen
 
 from ds.utils import flatten
 from ds.utils import drop_empty
-from ds import execution_tools
+from ds.chain import chain
 
 
 logger = getLogger(__name__)
@@ -54,7 +54,7 @@ class ExecutorShortcuts(BaseExecutor):
 
 class ChainMixin(BaseExecutor):
     def chain(self, **options):
-        return execution_tools.chain(self, **options)
+        return chain(self, **options)
 
 
 class Executor(ExecutorShortcuts, ChainMixin, BaseExecutor):

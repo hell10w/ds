@@ -1,7 +1,7 @@
 from ds.environment import get_environment
 
 
-context = 'dsjk'
+context = 'ds.presets.ds'
 
 
 def test_switch_context(shell):

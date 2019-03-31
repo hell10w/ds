@@ -1,5 +1,9 @@
+from logging import getLogger
 from os import chdir
 from os import getcwd
+
+
+logger = getLogger()
 
 
 class chain(object):
@@ -17,6 +21,7 @@ class chain(object):
 
     def __enter__(self):
         if self.path:
+            logger.debug('Switch current directory to %s', self.path)
             chdir(self.path)
         return self
 
@@ -24,4 +29,5 @@ class chain(object):
         replace = self.options.get('replace', False)
         self.executor.commit(replace=replace)
         if self.previous:
+            logger.debug('Switch current directory to %s', self.previous)
             chdir(self.previous)
