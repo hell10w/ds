@@ -101,16 +101,16 @@ class TestExecutorMixin(ExecutorMixin):
     executor_class = executor.TestExecutor
 
 
-class ReplMixin(BaseContext):
-    @property
-    def repl_class(self):
-        from ds.repl import Repl
-        return Repl
-
-    def get_commands(self):
-        return super(ReplMixin, self).get_commands() + [
-            command.DsRepl,
-        ]
+# class ReplMixin(BaseContext):
+#     @property
+#     def repl_class(self):
+#         from ds.repl import Repl
+#         return Repl
+#
+#     def get_commands(self):
+#         return super(ReplMixin, self).get_commands() + [
+#             command.DsRepl,
+#         ]
 
 
 class ProjectMixin(BaseContext):
@@ -129,8 +129,7 @@ class ProjectMixin(BaseContext):
         return self.get_project_name()
 
 
-class Context(ProjectMixin, IntrospectionMixin, ReplMixin, ExecutorMixin,
-              BaseContext):
+class Context(ProjectMixin, IntrospectionMixin, ExecutorMixin, BaseContext):
     def get_commands(self):
         return super(Context, self).get_commands() + [
             command.ListCommands,

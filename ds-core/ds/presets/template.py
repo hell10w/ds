@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from __future__ import absolute_import
 from logging import getLogger
 
 from ds import context
@@ -14,6 +15,9 @@ class Context(context.Context):
             Simple,
             WithOpts,
             Consume,
+            Shell,
+            OtherPath,
+            CallOtherCommand,
         ]
 
 
@@ -34,3 +38,24 @@ class Consume(Command):
 
     def invoke_with_args(self, args):
         logger.info('Called with %s', args)
+
+
+class Shell(Command):
+    def invoke_with_args(self, args):
+        executor = self.context.executor
+        with executor.chain(skip_stdout=True, shell=True) as chain:
+            chain.append('ls *')
+
+
+class OtherPath(Command):
+    def invoke_with_args(self, args):
+        executor = self.context.executor
+        with executor.chain(path='/tmp/', skip_stdout=True) as chain:
+            chain.append('ls', '-l')
+
+
+class CallOtherCommand(Command):
+    def invoke_with_args(self, args):
+        self.context.with_opts()
+        self.context.with_opts('--up')
+        self.context['with-opts']('--up')

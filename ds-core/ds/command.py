@@ -140,11 +140,11 @@ class EditContext(Command):
         self.context.executor.edit_file(self.context.source_file)
 
 
-class DsRepl(Command):
-    short_help = 'Read-eval-print-loop'
-    hidden = True
-
-    weight = generic_command()
-
-    def invoke_with_args(self, args):
-        self.context.repl_class(self.context)(args)
+# class DsRepl(Command):
+#     short_help = 'Read-eval-print-loop'
+#     hidden = True
+#
+#     weight = generic_command()
+#
+#     def invoke_with_args(self, args):
+#         self.context.repl_class(self.context)(args)
