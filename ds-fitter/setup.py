@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='dsjk-fitter',
-    version='0.0.1',
+    version='0.0.2',
     author='',
     author_email='',
     url='',

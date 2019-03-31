@@ -1,2 +1,2 @@
 include LICENSE
-include dsjk_fitter/presets/todo/templates/*
+include dsjk_fitter/presets/templates/*

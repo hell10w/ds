@@ -29,7 +29,7 @@ class Context(context.Context):
         return self.get_templates_path()
 
     def get_templates_path(self):
-        return relative('presets/todo/templates')
+        return relative('templates', target=__file__)
 
     @property
     def templates(self):
