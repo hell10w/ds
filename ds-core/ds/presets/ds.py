@@ -43,7 +43,7 @@ class ListContexts(Command):
     weight = preset_base_command()
 
     def invoke_with_args(self, args):
-        print(' '.join([item[0] for item in find_contexts()]))
+        print(' '.join([item[1] for item in find_contexts()]))
 
 
 class InstallAutocomplete(Command):

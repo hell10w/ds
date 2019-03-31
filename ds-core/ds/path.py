@@ -75,7 +75,7 @@ def get_project_root():
 def get_preset_extensions():
     result = []
     for _, name, _ in pkgutil.iter_modules():
-        if not name.startswith(PRESETS_PREFIX):
+        if not name.startswith(PRESETS_PREFIX) and name != 'ds':
             continue
         try:
             importlib.import_module(name)
@@ -92,7 +92,7 @@ def get_possible_imports():
     for item in walk_top():
         result[join(item, HIDDEN_PREFIX)] = None
     result[home()] = None
-    result[relative('presets')] = None
+    # result[relative('presets')] = None
     return list(result.keys())
 
 

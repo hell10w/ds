@@ -102,7 +102,7 @@ class SwitchContext(Command):
             fzf(variants, prompt='Context')
         if not preset:
             return
-        return preset.split(' ', 1)[0]
+        return preset.split(' ', 2)[1]
 
 
 class ListCommands(Command):

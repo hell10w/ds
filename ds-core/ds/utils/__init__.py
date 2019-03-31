@@ -5,6 +5,5 @@ from .is_interactive import is_interactive
 from .pretty_printer import pretty_print_object
 from .term import get_tty_size
 from .term import get_tty_width
-from .cd import cd
 from .crypto import generate_random_string
 from .numerator import numerator

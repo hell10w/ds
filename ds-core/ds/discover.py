@@ -25,7 +25,10 @@ def find_contexts():
     result = []
 
     for path in get_additional_import():
-        result += [(name, path) for name in get_modules(path)]
+        result += [
+            (name, name, path)
+            for name in get_modules(path)
+        ]
 
     for extension in get_preset_extensions():
         try:
@@ -35,7 +38,8 @@ def find_contexts():
                 if ispkg:
                     continue
                 context = '.'.join([extension, 'presets', name])
-                result.append((context, context))
+                display = '/'.join([extension, name])
+                result.append((display, context, '(system)'))
         except:
             pass
 

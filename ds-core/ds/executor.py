@@ -8,6 +8,7 @@ from subprocess import Popen
 
 from ds.utils import flatten
 from ds.utils import drop_empty
+from ds import execution_tools
 
 
 logger = getLogger(__name__)
@@ -51,7 +52,12 @@ class ExecutorShortcuts(BaseExecutor):
         self.commit(replace=True)
 
 
-class Executor(ExecutorShortcuts, BaseExecutor):
+class ChainMixin(BaseExecutor):
+    def chain(self, **options):
+        return execution_tools.chain(self, **options)
+
+
+class Executor(ExecutorShortcuts, ChainMixin, BaseExecutor):
     def __init__(self):
         super(Executor, self).__init__()
         self._queue = []
