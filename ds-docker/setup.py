@@ -14,4 +14,5 @@ setup(
         'docker>=3.1.3',
     ],
     include_package_data=True,
+    zip_safe=False,
 )

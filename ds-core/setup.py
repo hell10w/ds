@@ -27,4 +27,5 @@ setup(
             'ds=ds.__main__:main',
         ],
     },
+    zip_safe=False,
 )

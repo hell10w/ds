@@ -13,4 +13,5 @@ setup(
         'dsjk-core',
     ],
     include_package_data=True,
+    zip_safe=False,
 )
