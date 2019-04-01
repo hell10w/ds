@@ -43,7 +43,7 @@ class ListContexts(Command):
     weight = preset_base_command()
 
     def invoke_with_args(self, args):
-        print(' '.join([item[1] for item in find_contexts()]))
+        print(' '.join([item.display_name() for item in find_contexts()]))
 
 
 class InstallAutocomplete(Command):
@@ -71,26 +71,26 @@ class OverridePreset(Command):
     other_option = '(other)'
 
     def invoke_with_args(self, args):
-        variants = [' '.join(item) for item in find_contexts()]
-        preset = self.context.executor.\
-            fzf(variants, prompt='Preset')
-        if not preset:
+        selected_context = self.context.executor.\
+            ask_for_context(prompt='Preset')
+        if not selected_context:
             return
-        src, src_path = preset.split(' ', 1)
 
         variants = [self.other_option, self.default_option]
-        if src != self.default_option:
-            variants.append(src)
-        dst = self.context.executor.\
+        if selected_context.module_name != self.default_option:
+            variants.append(selected_context.module_name)
+
+        overridden_name = self.context.executor.\
             fzf(variants, prompt='New context')
-        if not dst:
+        if not overridden_name:
             return
-        if dst == self.other_option:
+
+        if overridden_name == self.other_option:
             try:
-                dst = input('New context name: ')
+                overridden_name = input('New context name: ')
             except EOFError:
-                dst = None
-        if not dst:
+                overridden_name = None
+        if not overridden_name:
             return
 
         additional_import = get_additional_import()
@@ -101,23 +101,22 @@ class OverridePreset(Command):
             if path not in additional_import
         ]
 
-        dst_path = self.context.executor.\
+        overridden_path = self.context.executor.\
             fzf(variants, prompt='Install path', no_sort=True)
-        if not dst_path:
+        if not overridden_path:
             return
 
-        if not exists(dst_path):
-            os.makedirs(dst_path)
+        if not exists(overridden_path):
+            os.makedirs(overridden_path)
 
-        src = join(src_path, src) + '.py'
-        dst = join(dst_path, dst) + '.py'
+        overridden_name = join(overridden_path, overridden_name) + '.py'
 
-        if exists(dst):
-            confirm = 'File "{}" already exists. Override?'.format(dst)
+        if exists(overridden_name):
+            confirm = 'File "{}" already exists. Override?'.format(overridden_name)
             if not self.context.executor.yesno(confirm):
                 return
 
-        copyfile(src, dst)
-        logger.info('New context copied to "%s"', dst)
+        copyfile(selected_context.file_path(), overridden_name)
+        logger.info('New context copied to "%s"', overridden_name)
 
-        self.context.executor.edit_file(dst)
+        self.context.executor.edit_file(overridden_name)

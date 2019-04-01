@@ -7,6 +7,7 @@ from os import execvpe
 from subprocess import PIPE
 from subprocess import Popen
 
+from ds.discover import find_contexts
 from ds.utils import flatten
 from ds.utils import drop_empty
 from ds.chain import chain
@@ -15,6 +16,9 @@ from ds.chain import chain
 logger = getLogger(__name__)
 
 ExecResult = namedtuple('ExecResult', ('code', 'stdout', 'stderr'))
+
+
+class NoSelect(RuntimeError): pass
 
 
 class BaseExecutor(object):
@@ -51,6 +55,19 @@ class ExecutorShortcuts(BaseExecutor):
             return
         self.append([editor, filename])
         self.commit(replace=True)
+
+    def ask_for_context(self, prompt):
+        variants = find_contexts()
+
+        selected = self.fzf([item.display_name() for item in variants],
+                            prompt=prompt)
+        if not selected:
+            return
+
+        for variant in variants:
+            if selected != variant.display_name():
+                continue
+            return variant
 
 
 class ChainMixin(BaseExecutor):

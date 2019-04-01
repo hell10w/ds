@@ -1,14 +1,11 @@
 from __future__ import unicode_literals
-
 from getpass import getpass
+
+from six.moves import input
 
 from ds.command import Command
 from dsjk_docker.presets.compose import Shell
 from local import Context as _Context
-try:
-    input = raw_input
-except NameError:
-    pass
 
 
 class Context(_Context):

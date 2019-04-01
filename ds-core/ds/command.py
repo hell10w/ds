@@ -11,7 +11,6 @@ from ds.environment import get_environment
 from ds.utils import pretty_print_object
 from ds.utils import numerator
 from ds.utils import is_interactive
-from ds.discover import find_contexts
 from ds.utils.kebab_to_snake import kebab_to_snake
 
 
@@ -97,12 +96,10 @@ class SwitchContext(Command):
         return self.ask_for_context()
 
     def ask_for_context(self):
-        variants = [' '.join(item) for item in find_contexts()]
-        preset = self.context.executor. \
-            fzf(variants, prompt='Context')
-        if not preset:
+        variant = self.context.executor.ask_for_context(prompt='Context')
+        if not variant:
             return
-        return preset.split(' ', 2)[1]
+        return variant.import_path()
 
 
 class ListCommands(Command):
