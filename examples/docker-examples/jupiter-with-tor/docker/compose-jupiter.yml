@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  jupiter-datascience:
+    build:
+      context: ${project_root}/docker/jupiter-datascience/
+      dockerfile: ${project_root}/docker/jupiter-datascience/Dockerfile
+    image: ${project_name}/datascience-notebook
+    container_name: ${project_name}--jupiter-datascience
+    stdin_open: true
+    tty: true
+    restart: always
+    environment:
+      JUPITER_PATH: "/"
+    volumes:
+    - ${project_root}/.data/jupiter-datascience/:/home/jovyan/work/
+
+  jupiter-tensorflow:
+    build:
+      context: ${project_root}/docker/jupiter-tensorflow/
+      dockerfile: ${project_root}/docker/jupiter-tensorflow/Dockerfile
+    image: ${project_name}/tensorflow-notebook
+    container_name: ${project_name}--jupiter-tensorflow
+    stdin_open: true
+    tty: true
+    restart: always
+    environment:
+      JUPITER_PATH: "/"
+    volumes:
+    - ${project_root}/.data/jupiter-tensorflow/:/home/jovyan/work/

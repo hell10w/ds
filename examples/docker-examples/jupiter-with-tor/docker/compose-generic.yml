@@ -1,0 +1,7 @@
+version: '3'
+
+networks:
+  default:
+    ipam:
+      config:
+      - subnet: $network_subnet

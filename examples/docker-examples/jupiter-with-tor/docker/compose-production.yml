@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      context: ${project_root}/docker/nginx/
+      dockerfile: ${project_root}/docker/nginx/Dockerfile
+    image: ${project_name}/nginx
+    container_name: ${project_name}--nginx
+    stdin_open: true
+    tty: true
+    restart: always
+    networks:
+      default:
+        ipv4_address: ${nginx_ip}
+
+  tor:
+    image: dperson/torproxy
+    container_name: ${project_name}--tor
+    command: -s "80;${nginx_ip}:80"
+    stdin_open: true
+    tty: true
+    restart: always
+    volumes:
+    - ${project_root}/.data/tor/:/var/lib/tor/hidden_service/
+
+  jupiter-datascience:
+    environment:
+      JUPITER_PATH: "/jupiter-datascience/"
+
+  jupiter-tensorflow:
+    environment:
+      JUPITER_PATH: "/jupiter-tensorflow/"
