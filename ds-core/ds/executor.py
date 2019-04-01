@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import os
+import sys
 from collections import namedtuple
 from logging import getLogger
 from os import execvpe
@@ -79,6 +80,7 @@ class Executor(ExecutorShortcuts, ChainMixin, BaseExecutor):
         skip_stdout = opts.get('skip_stdout', skip_all)
         skip_stdin = opts.get('skip_stdin', skip_all)
         skip_stderr = opts.get('skip_stderr', skip_all)
+        ignore_errors = opts.get('ignore_errors', False)
         shell = opts.get('shell', False)
         input_ = opts.get('input', None)
         env = opts.get('env', None)
@@ -94,7 +96,10 @@ class Executor(ExecutorShortcuts, ChainMixin, BaseExecutor):
         stdout, stderr = process.communicate(input_)
         code = process.poll()
         if code:
-            logger.info('Code: %s, stdout: %s, stderr: %s', code, repr(stdout), repr(stderr))
+            logger.error('Code: %s, stdout: %s, stderr: %s',
+                         code, repr(stdout), repr(stderr))
+            if not ignore_errors:
+                sys.exit(code)
         return ExecResult(code, stdout, stderr)
 
     def _replace(self, args, **opts):
