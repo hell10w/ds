@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 class Context(context.Context):
     def get_commands(self):
         return super(Context, self).get_commands() + [
-            InstallAll,
+            Install,
             CleanPyc,
             CleanDist,
             Publish,
@@ -51,20 +51,21 @@ class CleanDist(Command):
             args = self.packages
         executor = self.context.executor
         for path in args:
-            with executor.chain(path=path,
-                                skip_stdout=True,
-                                shell=True) as chain:
+            with executor.chain(path=path, skip_stdout=True, shell=True) as chain:
                 for pattern in self.patterns:
                     chain.append('sudo rm -rf {}'.format(pattern))
 
 
-class InstallAll(Command):
+class Install(Command):
+    consume_all_args = True
+
     def invoke_with_args(self, args):
+        if not args:
+            args = self.packages
         executor = self.context.executor
-        for package in self.get_packages():
-            with executor.chain(path=package,
-                                skip_stdout=True) as chain:
-                chain.append('sudo', 'python', 'setup.py', 'install')
+        for package in args:
+            with executor.chain(path=package, skip_stdout=True) as chain:
+                chain.append('sudo', 'python', 'setup.py', 'install', '--force')
             self.context.clean_dist((package, ))
         self.context.clean_pyc()
 
@@ -73,10 +74,8 @@ class Publish(Command):
     def invoke_with_args(self, args):
         executor = self.context.executor
         for package in self.get_packages():
-            with executor.chain(path=package,
-                                skip_stdout=True) as chain:
-                chain.append('python', 'setup.py', 'sdist', 'upload',
-                             '-r', 'pypi')
+            with executor.chain(path=package, skip_stdout=True) as chain:
+                chain.append('python', 'setup.py', 'sdist', 'upload', '-r', 'pypi')
             self.context.clean_dist((package, ))
         self.context.clean_pyc()
 
@@ -89,7 +88,6 @@ class Test(Command):
             args = self.packages
         executor = self.context.executor
         for path in args:
-            with executor.chain(path=path,
-                                skip_stdout=True) as chain:
+            with executor.chain(path=path, skip_stdout=True) as chain:
                 chain.append('pytest', '-s')
         self.context.clean_pyc()

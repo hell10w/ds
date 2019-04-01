@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import os
 from collections import namedtuple
 from logging import getLogger
-from os import execvp
+from os import execvpe
 from subprocess import PIPE
 from subprocess import Popen
 
@@ -81,32 +81,42 @@ class Executor(ExecutorShortcuts, ChainMixin, BaseExecutor):
         skip_stderr = opts.get('skip_stderr', skip_all)
         shell = opts.get('shell', False)
         input_ = opts.get('input', None)
+        env = opts.get('env', None)
 
         popen_kwargs = dict(
             stdin=None if skip_stdin else PIPE,
             stdout=None if skip_stdout else PIPE,
             stderr=None if skip_stderr else PIPE,
             shell=shell,
+            env=create_environ(env),
         )
         process = Popen(args, **popen_kwargs)
         stdout, stderr = process.communicate(input_)
         code = process.poll()
         if code:
-            logger.info('Code: %s, stdout: %s, stderr: %s',
-                        code, repr(stdout), repr(stderr))
+            logger.info('Code: %s, stdout: %s, stderr: %s', code, repr(stdout), repr(stderr))
         return ExecResult(code, stdout, stderr)
 
     def _replace(self, args, **opts):
+        # TODO: shell
         logger.debug('Replace with %s', args)
-        execvp(args[0], args[:])
+        execvpe(args[0], args[:], create_environ(opts.get('env', None)))
 
     def commit(self, replace=False):
         queue = self._queue
         self._queue = []
+
         for is_last, (item, opts) in iter_with_last(queue):
-            if is_last and replace and not opts:  # TODO: opts
+            do_replace = is_last and replace
+            is_can_replace = not opts or (len(opts) == 1 and 'env' in opts)
+
+            if do_replace and not is_can_replace:
+                logger.error('Can\'t replace because of options')
+
+            if do_replace and is_can_replace:
                 self._replace(item, **opts)
-                return
+                return  # doesn't reach
+
             value = self._call(item, **opts)
             if is_last:
                 return value
@@ -136,3 +146,14 @@ def iter_with_last(items):
         yield False, item
     for item in items[-1:]:
         yield True, item
+
+
+def create_environ(env):
+    if not env:
+        return
+    result = os.environ.copy()
+    result.update({
+        k: str(v)
+        for k, v in env.items()
+    })
+    return result
