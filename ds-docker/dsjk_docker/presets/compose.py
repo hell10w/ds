@@ -2,7 +2,6 @@ import os
 import sys
 from logging import getLogger
 from os import getcwd
-from os.path import join
 
 from ds.command import Command
 from ds.context import Context as _Context
@@ -30,6 +29,7 @@ class Context(_Context):
             Compose,
             Switch,
             Config,
+            Env,
             Build,
             Up,
             Down,
@@ -96,24 +96,12 @@ class Context(_Context):
             ],
         )
 
-    @property
-    def env_filename(self):
-        return join(self.project_root, '.env')
-
-    def update_env_file(self):
-        with open(self.env_filename, 'w') as output:
-            output.writelines([
-                '{}={}\n'.format(k, v)
-                for k, v in self.environment_variables.items()
-            ])
-
     def invoke_compose(self, args):
-        self.update_env_file()
         options = drop_empty(flatten((
             self.get_compose_options(),
             args,
         )))
-        self.executor.append(options)
+        self.executor.append(options, env=self.environment_variables)
 
     def switch_current_service(self, allow_all=False):
         all_option = '(all)'
@@ -149,6 +137,12 @@ class Context(_Context):
         if getcwd() != self.project_root:
             logger.warning('Current directory is not project\'s root')
         super(Context, self).check()
+
+
+class Env(Command):
+    def invoke_with_args(self, args):
+        for k, v in self.context.environment_variables.items():
+            print('='.join(map(str, (k, v))))
 
 
 class Switch(Command):
